@@ -1,0 +1,24 @@
+{
+  "name": "nextbeat",
+  "private": true,
+  "description": "NextBeat (PayCall) — metered x402 investigation beats on Hedera testnet",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently --names service,agent --prefix-colors cyan,magenta \"npm run dev -w @nextbeat/service\" \"npm run dev -w @nextbeat/agent\"",
+    "build": "npm run build -w @nextbeat/shared && npm run build -w @nextbeat/service && npm run build -w @nextbeat/agent",
+    "postinstall": "npm run build -w @nextbeat/shared",
+    "typecheck": "npm run build -w @nextbeat/shared && npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "smoke": "npm run smoke -w @nextbeat/service",
+    "lint": "npm run typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.6.3"
+  }
+}

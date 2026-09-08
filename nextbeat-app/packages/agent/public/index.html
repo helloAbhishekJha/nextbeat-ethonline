@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NextBeat — buy the next investigation paragraph</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0c1018;
+        --card: #151b27;
+        --line: #2a3346;
+        --text: #eef2ff;
+        --muted: #8b95ad;
+        --accent: #7c9cff;
+        --ok: #3dd68c;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      main { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+      h1 { font-size: 1.65rem; font-weight: 650; margin: 0 0 0.4rem; letter-spacing: -0.02em; }
+      .lead { color: var(--muted); line-height: 1.55; margin: 0 0 1.5rem; }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 1.15rem 1.2rem;
+        margin-bottom: 0.9rem;
+      }
+      label { display: block; font-size: 0.78rem; color: var(--muted); margin: 0.7rem 0 0.35rem; }
+      input, textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        background: #0c1018;
+        color: var(--text);
+        border-radius: 10px;
+        padding: 0.7rem 0.8rem;
+        font: inherit;
+      }
+      textarea { min-height: 4.2rem; resize: vertical; }
+      button {
+        margin-top: 1rem;
+        width: 100%;
+        border: 0;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        background: var(--accent);
+        color: #0c1018;
+        font-weight: 650;
+        cursor: pointer;
+      }
+      button:disabled { opacity: 0.45; cursor: not-allowed; }
+      .meta { font-size: 0.8rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 0.75rem; }
+      .meta a { color: var(--accent); }
+      .status { font-family: ui-monospace, monospace; font-size: 0.82rem; min-height: 1.3em; margin: 0.75rem 0 0; }
+      pre {
+        margin: 0;
+        overflow: auto;
+        font-size: 0.75rem;
+        line-height: 1.45;
+        background: #0c1018;
+        border-radius: 10px;
+        padding: 0.9rem;
+      }
+      .ok { color: var(--ok); font-weight: 650; margin-bottom: 0.5rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>NextBeat</h1>
+      <p class="lead">
+        An agent wire desk. It buys the <strong>next paragraph</strong> of onchain due diligence:
+        live Graph snapshots fused with Hedera testnet state, settled with dust HBAR over x402.
+        No music in the demo. No mainnet.
+      </p>
+      <div class="card"><div class="meta" id="meta">Loading…</div></div>
+      <div class="card">
+        <label for="assignment">Assignment</label>
+        <textarea id="assignment">Is this Hedera treasury over-exposed relative to live lending/DEX TVL?</textarea>
+        <label for="accountId">Hedera testnet account to brief</label>
+        <input id="accountId" value="0.0.3" autocomplete="off" spellcheck="false" />
+        <button id="buy" type="button">Pay dust HBAR &amp; buy the next beat</button>
+        <p class="status" id="status"></p>
+      </div>
+      <div class="card">
+        <div class="ok" id="done" hidden>Settled on hedera:testnet</div>
+        <pre id="out">{}</pre>
+      </div>
+    </main>
+    <script>
+      const meta = document.getElementById("meta");
+      const statusEl = document.getElementById("status");
+      const out = document.getElementById("out");
+      const buy = document.getElementById("buy");
+      const done = document.getElementById("done");
+
+      async function loadConfig() {
+        const c = await fetch("/api/config").then((r) => r.json());
+        buy.textContent = `Pay ${c.settleHbar} testnet HBAR & buy the next beat`;
+        meta.innerHTML = [
+          "<span>hedera:testnet</span>",
+          `<span>settle ${c.settleTinybars} tinybars</span>`,
+          `<span>agent ${c.agentAccountId ?? "unset"}</span>`,
+          c.hashscanService
+            ? `<a href="${c.hashscanService}" target="_blank" rel="noreferrer">HashScan payTo</a>`
+            : "<span>payTo unset</span>",
+          `<span>${c.walletReady ? "wallet ready" : "add keys to .env"}</span>`,
+        ].join("");
+        buy.disabled = !c.walletReady;
+      }
+
+      buy.addEventListener("click", async () => {
+        done.hidden = true;
+        out.textContent = "{}";
+        buy.disabled = true;
+        statusEl.textContent = "Starting…";
+        const res = await fetch("/api/buy", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            accountId: document.getElementById("accountId").value.trim(),
+            assignment: document.getElementById("assignment").value.trim(),
+            limit: 3,
+          }),
+        });
+        if (res.headers.get("content-type")?.includes("application/json")) {
+          out.textContent = JSON.stringify(await res.json(), null, 2);
+          buy.disabled = false;
+          return;
+        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = "";
+        while (true) {
+          const { done: finished, value } = await reader.read();
+          if (finished) break;
+          buf += decoder.decode(value, { stream: true });
+          const parts = buf.split("\n\n");
+          buf = parts.pop() ?? "";
+          for (const block of parts) {
+            const ev = (block.match(/^event: (.+)$/m) || [])[1];
+            const dataLine = (block.match(/^data: (.+)$/m) || [])[1];
+            if (!ev || !dataLine) continue;
+            const data = JSON.parse(dataLine);
+            if (ev === "status") statusEl.textContent = data.message;
+            if (ev === "done") {
+              done.hidden = false;
+              statusEl.textContent = "Done";
+              out.textContent = JSON.stringify(data, null, 2);
+            }
+            if (ev === "error") {
+              statusEl.textContent = data.error;
+              out.textContent = JSON.stringify(data, null, 2);
+            }
+          }
+        }
+        buy.disabled = false;
+      });
+
+      loadConfig().catch((e) => {
+        meta.textContent = String(e);
+      });
+    </script>
+  </body>
+</html>
