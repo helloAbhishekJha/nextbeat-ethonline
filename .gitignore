@@ -9,5 +9,9 @@ paycall/.env
 *.tsbuildinfo
 coverage/
 video/pw-record/
+video/voice-ref/
 video/narration.mp3
+video/narration_full.mp3
+video/narration_ws.mp3
 video/narration.vtt
+video/*.log

@@ -12,4 +12,6 @@ When the agent clicks pay, the service returns HTTP four oh two Payment Required
 
 Here is the settled beat view. Paid is true. Settle tinybars are shown. The network is hedera testnet. The reasoning compares Graph protocol snapshots with Hedera account activity and proposes the next investigation step. It does not paste raw GraphQL.
 
-That closes the loop: The Graph for live multi-protocol data, Hedera for metered x402 settlement, and a desk any agent can drive. This is NextBeat. Thank you.
+Why this stack matters for ETHOnline: The Graph supplies live multi-protocol context, Hedera carries metered agentic settlement on testnet, and the desk is a thin agent surface any caller can drive over HTTP. One origin, one paid beat, one clear next step for the investigation.
+
+That closes the loop. This is NextBeat. Thank you.
