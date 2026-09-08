@@ -17,3 +17,6 @@ video/narration.vtt
 video/*.log
 video/narration_loud.wav
 video/narration_qwen.mp3
+video/intro/
+video/narration_uncle.mp3
+video/narration_minimax.mp3
