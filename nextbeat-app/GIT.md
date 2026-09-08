@@ -6,7 +6,7 @@ Judges can `git log` and `git blame`. **Do not backdate.** `--date`, `GIT_AUTHOR
 
 **Submit 24h early every time** so encode/upload cannot fail at the official cutoff.
 
-Public GitHub: [helloAbhishekJha/nextbeat](https://github.com/helloAbhishekJha/nextbeat). `main` only. No force-push after the repo is public. Do not commit `nextbeat/` or `paycall/`. Do not commit local tooling config.
+Public GitHub: [helloAbhishekJha/nextbeat-ethonline](https://github.com/helloAbhishekJha/nextbeat-ethonline). `main` only. No force-push after the repo is public. Do not commit `nextbeat/` or `paycall/`. Do not commit local tooling config.
 
 **Daily push:** every **ET** calendar day (America/New_York) with real work gets a commit **and** `git push origin main` the same ET day. Do not save a week of diffs for one dump. Never backdate. Skip a day only if nothing changed (no empty commits). Dashboard and ETHOnline cutoffs are also **ET** (our submit **Sat 12 Sep 12:00 ET**; official lock **Sun 13 Sep 12:00 ET**).
 
