@@ -1,0 +1,79 @@
+# NextBeat
+
+**Author:** Abhishek Jha  
+
+ETHOnline 2026 · **Hedera** · **The Graph** · **Bazantic**
+
+NextBeat is a small wire desk for onchain research. You pick an assignment (for example treasury vs lending). The service pulls live protocol data from The Graph, checks Hedera testnet state, and returns the **next beat** of the investigation. That brief is paid with a tiny amount of testnet HBAR using **x402** (Blocky402 facilitator).
+
+Everything runs on **Hedera testnet only**. Default price is **1,000 tinybars** (0.00001 HBAR).
+
+## How it works
+
+```mermaid
+flowchart LR
+  A[Desk UI<br/>port 3001] -->|quote / brief| B[NextBeat service<br/>port 4021]
+  B -->|live queries| C[The Graph]
+  B -->|account / mirror| D[Hedera testnet]
+  A -->|pay HBAR via x402| E[Blocky402]
+  E -->|settle| D
+  B -->|optional receipt| F[HCS topic]
+```
+
+1. Open the desk and choose an assignment.  
+2. Call **quote** (free) to see the metered price.  
+3. Call **brief** — the service answers `402 Payment Required`.  
+4. The agent pays dust HBAR through Blocky402 on testnet.  
+5. After settle, you get the next investigation beat (Graph + Hedera fused). Optional: a short receipt on an HCS topic.
+
+## Repo layout
+
+| Path | Role |
+|---|---|
+| `nextbeat-app/packages/service` | HTTP API: health, quote, paid brief |
+| `nextbeat-app/packages/agent` | Desk UI that quotes, pays, and shows the beat |
+| `nextbeat-app/packages/shared` | Shared types, env, quote math |
+
+## How to run
+
+**Need:** Node **20.19+**, two Hedera **testnet ECDSA** accounts from [portal.hedera.com](https://portal.hedera.com) (faucet ~1000 HBAR / 24h).
+
+```bash
+cd nextbeat-app
+cp .env.example .env
+# Edit .env: agent + service account IDs and private keys
+# Optional: GRAPH_QUERY_URLS=url1,url2  (two live Studio/gateway endpoints)
+
+npm install
+npm test
+npm run typecheck
+npm run dev
+```
+
+| What | URL |
+|---|---|
+| Service health | http://127.0.0.1:4021/health |
+| Desk UI | http://127.0.0.1:3001 |
+
+Check that unpaid brief returns 402:
+
+```bash
+npm run smoke
+```
+
+## API
+
+| Method | Path | Payment |
+|---|---|---|
+| `GET` | `/health` | none |
+| `GET` | `/v1/quote?accountId=…&limit=3` | none (price preview) |
+| `POST` | `/v1/brief` | x402 HBAR on testnet |
+
+Body for brief: `{ "accountId", "assignment", "limit" }`.
+
+## Notes
+
+- Never commit `.env` or private keys.  
+- Never use mainnet.  
+- For The Graph track, set two live `GRAPH_QUERY_URLS`; the beat reasons over them instead of dumping raw GraphQL.  
+- Git cadence and milestones: [`nextbeat-app/GIT.md`](./nextbeat-app/GIT.md).
