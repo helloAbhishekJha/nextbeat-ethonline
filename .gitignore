@@ -8,3 +8,6 @@ nextbeat/
 paycall/.env
 *.tsbuildinfo
 coverage/
+video/pw-record/
+video/narration.mp3
+video/narration.vtt

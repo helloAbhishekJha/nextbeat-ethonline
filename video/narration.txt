@@ -1,0 +1,15 @@
+Welcome to NextBeat — an agent wire desk for onchain research on Hedera testnet.
+
+On this first screen you see the live desk. NextBeat buys the next beat of an investigation. Each beat is a short, reasoned brief, paid with dust HBAR using the x402 payment standard and the Blocky402 facilitator. We stay on testnet only. No mainnet. No background music in this demo.
+
+Here is the status strip. It shows hedera testnet, the settle amount of one thousand tinybars — that is zero point zero zero zero zero one HBAR — and whether the agent wallet is ready. The same origin hosts both the desk UI and the HTTP service on Vercel.
+
+Now the assignment. I type a research question an agent would actually ask: is this Hedera treasury over-exposed relative to live lending and D E X total value locked. That becomes the beat assignment for this request.
+
+Next, the Hedera testnet account to brief. The free quote path uses Hedera Mirror Node recent transactions for this account, and when Graph query U R Ls are configured, live protocol rows from The Graph. Those signals meter the quote. They also feed the reasoning in the paid brief.
+
+When the agent clicks pay, the service returns HTTP four oh two Payment Required. The desk signs dust HBAR through Blocky402. After settle, the brief unlocks. You should see a HashScan link for the pay-to account in a full wallet demo.
+
+Here is the settled beat view. Paid is true. Settle tinybars are shown. The network is hedera testnet. The reasoning compares Graph protocol snapshots with Hedera account activity and proposes the next investigation step. It does not paste raw GraphQL.
+
+That closes the loop: The Graph for live multi-protocol data, Hedera for metered x402 settlement, and a desk any agent can drive. This is NextBeat. Thank you.

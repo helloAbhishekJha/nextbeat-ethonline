@@ -19,6 +19,10 @@ Desk and service share that host. The desk calls `/v1/brief` on the same origin 
 
 Paid buys need Hedera testnet keys in the Vercel project env (agent + service accounts). Without keys, health and the desk UI still load; `/api/buy` stays unavailable.
 
+## Demo video
+
+[`video/nextbeat-demo.mp4`](./video/nextbeat-demo.mp4) — ~2 min, **1280×720**, spoken English narration, **no music**, 1× real time.
+
 ## Submission images
 
 | File | Size | Use |
