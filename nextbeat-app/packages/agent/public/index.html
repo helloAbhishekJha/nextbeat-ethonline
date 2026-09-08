@@ -23,8 +23,22 @@
         color: var(--text);
       }
       main { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+      .brand {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+      }
+      .logo {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        flex: 0 0 auto;
+        border: 1px solid var(--line);
+        background: #0a0e16;
+      }
       h1 { font-size: 1.65rem; font-weight: 650; margin: 0 0 0.4rem; letter-spacing: -0.02em; }
-      .lead { color: var(--muted); line-height: 1.55; margin: 0 0 1.5rem; }
+      .lead { color: var(--muted); line-height: 1.55; margin: 0; }
       .card {
         background: var(--card);
         border: 1px solid var(--line);
@@ -72,12 +86,17 @@
   </head>
   <body>
     <main>
-      <h1>NextBeat</h1>
-      <p class="lead">
-        An agent wire desk. It buys the <strong>next paragraph</strong> of onchain due diligence:
-        live Graph snapshots fused with Hedera testnet state, settled with dust HBAR over x402.
-        No music in the demo. No mainnet.
-      </p>
+      <header class="brand">
+        <img class="logo" src="logo-512.png" width="56" height="56" alt="NextBeat" />
+        <div>
+          <h1>NextBeat</h1>
+          <p class="lead">
+            An agent wire desk. It buys the <strong>next paragraph</strong> of onchain due diligence:
+            live Graph snapshots fused with Hedera testnet state, settled with dust HBAR over x402.
+            No music in the demo. No mainnet.
+          </p>
+        </div>
+      </header>
       <div class="card"><div class="meta" id="meta">Loading…</div></div>
       <div class="card">
         <label for="assignment">Assignment</label>

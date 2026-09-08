@@ -19,6 +19,16 @@ Desk and service share that host. The desk calls `/v1/brief` on the same origin 
 
 Paid buys need Hedera testnet keys in the Vercel project env (agent + service accounts). Without keys, health and the desk UI still load; `/api/buy` stays unavailable.
 
+## Submission images
+
+| File | Size | Use |
+|---|---|---|
+| [`images/logo-512.png`](./images/logo-512.png) | 512×512 | Project logo |
+| [`images/cover-640x360.png`](./images/cover-640x360.png) | 640×360 | Cover |
+| [`images/screenshot-01-desk.png`](./images/screenshot-01-desk.png) | 1280×720 | Desk |
+| [`images/screenshot-02-assignment.png`](./images/screenshot-02-assignment.png) | 1280×720 | Assignment form |
+| [`images/screenshot-03-beat.png`](./images/screenshot-03-beat.png) | 1280×720 | Settled beat |
+
 ## How it works
 
 ```mermaid

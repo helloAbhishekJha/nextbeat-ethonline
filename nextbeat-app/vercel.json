@@ -5,10 +5,18 @@
       "src": "api/index.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["packages/agent/public/**", "api/package.json"],
+        "includeFiles": [
+          "packages/agent/public/**",
+          "api/package.json"
+        ],
         "maxDuration": 60
       }
     }
   ],
-  "routes": [{ "src": "/(.*)", "dest": "/api/index.js" }]
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.js"
+    }
+  ]
 }
