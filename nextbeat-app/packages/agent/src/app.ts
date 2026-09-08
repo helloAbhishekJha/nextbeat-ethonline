@@ -20,7 +20,7 @@ export function createAgentApp(env: AgentEnv, logger: Logger) {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json({ limit: '32kb' }));
-  const publicDir = join(dirname(fileURLToPath(import.meta.url)), '../public');
+  const publicDir = join(process.cwd(), 'packages/agent/public');
   app.use(express.static(publicDir, { index: 'index.html', maxAge: 0 }));
 
   let spent = 0n;

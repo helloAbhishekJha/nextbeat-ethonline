@@ -1,16 +1,18 @@
 {
   "name": "nextbeat",
   "private": true,
+  "type": "module",
   "description": "NextBeat (PayCall) — metered x402 investigation beats on Hedera testnet",
   "engines": {
-    "node": ">=20.19.0"
+    "node": "22.x"
   },
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
     "dev": "concurrently --names service,agent --prefix-colors cyan,magenta \"npm run dev -w @nextbeat/service\" \"npm run dev -w @nextbeat/agent\"",
-    "build": "npm run build -w @nextbeat/shared && npm run build -w @nextbeat/service && npm run build -w @nextbeat/agent",
+    "build": "npm run build -w @nextbeat/shared && npm run build -w @nextbeat/service && npm run build -w @nextbeat/agent && npm run build -w @nextbeat/site",
+    "bundle:vercel": "npm run build && node scripts/bundle-vercel.mjs",
     "postinstall": "npm run build -w @nextbeat/shared",
     "typecheck": "npm run build -w @nextbeat/shared && npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
@@ -18,7 +20,17 @@
     "lint": "npm run typecheck"
   },
   "devDependencies": {
+    "@types/node": "^26.5.0",
     "concurrently": "^9.1.2",
-    "typescript": "^5.6.3"
+    "esbuild": "^0.28.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@nextbeat/agent": "^0.1.0",
+    "@nextbeat/service": "^0.1.0",
+    "@nextbeat/shared": "^0.1.0",
+    "dotenv": "^17.4.2",
+    "express": "^4.22.2",
+    "pino": "^10.3.1"
   }
 }

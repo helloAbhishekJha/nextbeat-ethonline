@@ -8,6 +8,17 @@ NextBeat is a small wire desk for onchain research. You pick an assignment (for 
 
 Everything runs on **Hedera testnet only**. Default price is **1,000 tinybars** (0.00001 HBAR).
 
+## Live demo
+
+| What | URL |
+|---|---|
+| Desk + API (one deployment) | **https://nextbeat.vercel.app** |
+| Health | https://nextbeat.vercel.app/health |
+
+Desk and service share that host. The desk calls `/v1/brief` on the same origin (`SERVICE_PUBLIC_URL=https://nextbeat.vercel.app`).
+
+Paid buys need Hedera testnet keys in the Vercel project env (agent + service accounts). Without keys, health and the desk UI still load; `/api/buy` stays unavailable.
+
 ## How it works
 
 ```mermaid

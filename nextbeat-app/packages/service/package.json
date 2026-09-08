@@ -2,6 +2,16 @@
   "name": "@nextbeat/service",
   "version": "0.1.0",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "start": "node dist/main.js",
@@ -11,13 +21,13 @@
     "smoke": "tsx src/smoke.ts"
   },
   "dependencies": {
-    "@nextbeat/shared": "*",
     "@hiero-ledger/sdk": "^2.85.0",
+    "@nextbeat/shared": "*",
     "@x402/core": "^2.18.0",
     "@x402/express": "^2.18.0",
     "@x402/hedera": "^2.18.0",
     "dotenv": "^16.4.5",
-    "express": "^4.21.2",
+    "express": "^4.22.2",
     "pino": "^9.6.0",
     "zod": "^3.23.8"
   },

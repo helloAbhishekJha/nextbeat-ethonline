@@ -5,3 +5,8 @@ coverage/
 *.log
 .DS_Store
 *.tsbuildinfo
+.vercel
+.env*
+.env.local
+api/index.js
+api/index.cjs
