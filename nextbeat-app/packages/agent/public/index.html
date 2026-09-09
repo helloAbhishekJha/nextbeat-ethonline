@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>NextBeat — buy the next investigation paragraph</title>
+    <title>NextBeat — onchain investigation desk</title>
+    <script src="https://cdn.jsdelivr.net/npm/@worldcoin/idkit-core"></script>
     <style>
       :root {
         color-scheme: dark;
@@ -14,6 +15,7 @@
         --muted: #8b95ad;
         --accent: #7c9cff;
         --ok: #3dd68c;
+        --warn: #f5c451;
       }
       * { box-sizing: border-box; }
       body {
@@ -27,7 +29,7 @@
         display: flex;
         gap: 1rem;
         align-items: flex-start;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
       }
       .logo {
         width: 56px;
@@ -38,7 +40,24 @@
         background: #0a0e16;
       }
       h1 { font-size: 1.65rem; font-weight: 650; margin: 0 0 0.4rem; letter-spacing: -0.02em; }
+      h2 { font-size: 1rem; font-weight: 650; margin: 0 0 0.5rem; }
       .lead { color: var(--muted); line-height: 1.55; margin: 0; }
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      .step {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.55rem 0.65rem;
+        font-size: 0.78rem;
+        color: var(--muted);
+        text-align: center;
+      }
+      .step.active { color: var(--text); border-color: var(--accent); }
+      .step.done { color: var(--ok); border-color: var(--ok); }
       .card {
         background: var(--card);
         border: 1px solid var(--line);
@@ -46,6 +65,7 @@
         padding: 1.15rem 1.2rem;
         margin-bottom: 0.9rem;
       }
+      .card.locked { opacity: 0.55; pointer-events: none; }
       label { display: block; font-size: 0.78rem; color: var(--muted); margin: 0.7rem 0 0.35rem; }
       input, textarea {
         width: 100%;
@@ -68,10 +88,16 @@
         font-weight: 650;
         cursor: pointer;
       }
+      button.secondary {
+        background: transparent;
+        color: var(--warn);
+        border: 1px dashed var(--warn);
+      }
       button:disabled { opacity: 0.45; cursor: not-allowed; }
       .meta { font-size: 0.8rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 0.75rem; }
       .meta a { color: var(--accent); }
       .status { font-family: ui-monospace, monospace; font-size: 0.82rem; min-height: 1.3em; margin: 0.75rem 0 0; }
+      .hint { font-size: 0.85rem; color: var(--muted); line-height: 1.5; margin: 0; }
       pre {
         margin: 0;
         overflow: auto;
@@ -82,6 +108,15 @@
         padding: 0.9rem;
       }
       .ok { color: var(--ok); font-weight: 650; margin-bottom: 0.5rem; }
+      .badge {
+        display: inline-block;
+        font-size: 0.72rem;
+        padding: 0.15rem 0.45rem;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        color: var(--muted);
+        margin-left: 0.35rem;
+      }
     </style>
   </head>
   <body>
@@ -91,53 +126,196 @@
         <div>
           <h1>NextBeat</h1>
           <p class="lead">
-            An agent wire desk. It buys the <strong>next paragraph</strong> of onchain due diligence:
-            live Graph snapshots fused with Hedera testnet state, settled with dust HBAR over x402.
-            No music in the demo. No mainnet.
+            A gamified wire desk for onchain due diligence. Prove you're human, open a case,
+            then pay <strong>dust testnet HBAR</strong> (x402) to unlock the next clue —
+            live Graph data fused with Hedera state. No mainnet. No music in the demo.
           </p>
         </div>
       </header>
+
+      <div class="steps">
+        <div class="step" id="stepHuman">1 · Prove human</div>
+        <div class="step" id="stepCase">2 · Open case</div>
+        <div class="step" id="stepPay">3 · Buy clue</div>
+      </div>
+
       <div class="card"><div class="meta" id="meta">Loading…</div></div>
-      <div class="card">
-        <label for="assignment">Assignment</label>
+
+      <div class="card" id="gateCard" hidden>
+        <h2>Step 1 — Prove you're human <span class="badge">World Selfie Check</span></h2>
+        <p class="hint">
+          Bots shouldn't burn your agent's HBAR budget. One quick selfie unlocks the desk for an hour.
+          Swap <code>SLOT_3_SPONSOR</code> to ENS or Bazantic if World doesn't ship.
+        </p>
+        <button id="proveHuman" type="button">Scan Selfie Check</button>
+        <button id="demoBypass" class="secondary" type="button" hidden>Dev bypass (demo gate)</button>
+        <p class="status" id="gateStatus"></p>
+      </div>
+
+      <div class="card locked" id="caseCard">
+        <h2>Step 2 — Your case</h2>
+        <label for="assignment">What are we investigating?</label>
         <textarea id="assignment">Is this Hedera treasury over-exposed relative to live lending/DEX TVL?</textarea>
-        <label for="accountId">Hedera testnet account to brief</label>
+        <label for="accountId">Hedera testnet account under review</label>
         <input id="accountId" value="0.0.3" autocomplete="off" spellcheck="false" />
-        <button id="buy" type="button">Pay dust HBAR &amp; buy the next beat</button>
+        <button id="buy" type="button" disabled>Buy next clue (dust HBAR)</button>
         <p class="status" id="status"></p>
       </div>
+
       <div class="card">
-        <div class="ok" id="done" hidden>Settled on hedera:testnet</div>
+        <div class="ok" id="done" hidden>Clue settled on hedera:testnet</div>
         <pre id="out">{}</pre>
       </div>
     </main>
     <script>
       const meta = document.getElementById("meta");
       const statusEl = document.getElementById("status");
+      const gateStatus = document.getElementById("gateStatus");
       const out = document.getElementById("out");
       const buy = document.getElementById("buy");
       const done = document.getElementById("done");
+      const gateCard = document.getElementById("gateCard");
+      const caseCard = document.getElementById("caseCard");
+      const proveHuman = document.getElementById("proveHuman");
+      const demoBypass = document.getElementById("demoBypass");
+      const stepHuman = document.getElementById("stepHuman");
+      const stepCase = document.getElementById("stepCase");
+      const stepPay = document.getElementById("stepPay");
+
+      let config = null;
+
+      function setSteps(humanDone, caseOpen) {
+        stepHuman.className = "step" + (humanDone ? " done" : " active");
+        stepCase.className = "step" + (caseOpen ? " active" : humanDone ? "" : "");
+        stepPay.className = "step";
+      }
+
+      function unlockCase() {
+        caseCard.classList.remove("locked");
+        setSteps(true, true);
+        if (config?.walletReady) buy.disabled = false;
+      }
 
       async function loadConfig() {
-        const c = await fetch("/api/config").then((r) => r.json());
-        buy.textContent = `Pay ${c.settleHbar} testnet HBAR & buy the next beat`;
+        config = await fetch("/api/config").then((r) => r.json());
+        buy.textContent = `Buy next clue (${config.settleHbar} testnet HBAR)`;
+        const slot3 =
+          config.slot3Sponsor === "world"
+            ? "slot 3: World"
+            : config.slot3Sponsor === "ens"
+              ? "slot 3: ENS"
+              : config.slot3Sponsor === "bazantic"
+                ? "slot 3: Bazantic"
+                : "slot 3: off";
         meta.innerHTML = [
           "<span>hedera:testnet</span>",
-          `<span>settle ${c.settleTinybars} tinybars</span>`,
-          `<span>agent ${c.agentAccountId ?? "unset"}</span>`,
-          c.hashscanService
-            ? `<a href="${c.hashscanService}" target="_blank" rel="noreferrer">HashScan payTo</a>`
+          `<span>clue ${config.settleTinybars} tinybars</span>`,
+          `<span>agent ${config.agentAccountId ?? "unset"}</span>`,
+          `<span>${slot3}</span>`,
+          config.hashscanService
+            ? `<a href="${config.hashscanService}" target="_blank" rel="noreferrer">HashScan payTo</a>`
             : "<span>payTo unset</span>",
-          `<span>${c.walletReady ? "wallet ready" : "add keys to .env"}</span>`,
+          `<span>${config.walletReady ? "wallet ready" : "add keys to .env"}</span>`,
         ].join("");
-        buy.disabled = !c.walletReady;
+
+        if (config.worldGate && !config.humanVerified) {
+          gateCard.hidden = false;
+          demoBypass.hidden = !config.worldDemoGate;
+          setSteps(false, false);
+        } else {
+          gateCard.hidden = true;
+          unlockCase();
+          if (config.humanVerified) stepHuman.className = "step done";
+        }
+        if (!config.walletReady) buy.disabled = true;
       }
+
+      async function markHumanVerified(demo) {
+        gateStatus.textContent = demo ? "Demo gate cleared (dev only)." : "Human verified — case unlocked.";
+        gateCard.hidden = true;
+        unlockCase();
+        await loadConfig();
+      }
+
+      proveHuman.addEventListener("click", async () => {
+        if (!window.IDKit) {
+          gateStatus.textContent = "IDKit failed to load from CDN.";
+          return;
+        }
+        proveHuman.disabled = true;
+        gateStatus.textContent = "Fetching sign-in challenge…";
+        try {
+          const sig = await fetch("/api/world/sign").then((r) => r.json());
+          if (sig.error) {
+            gateStatus.textContent = sig.error + (sig.demoGate ? " — use dev bypass or set World keys." : "");
+            proveHuman.disabled = false;
+            return;
+          }
+          const request = await IDKit.request({
+            app_id: config.worldAppId,
+            action: config.worldAction,
+            rp_context: {
+              rp_id: config.worldRpId,
+              nonce: sig.nonce,
+              created_at: sig.created_at,
+              expires_at: sig.expires_at,
+              signature: sig.sig,
+            },
+            allow_legacy_proofs: true,
+          }).preset(IDKit.selfieCheckLegacy({ signal: sig.nonce }));
+
+          if (request.connectorURI) {
+            gateStatus.innerHTML =
+              'Scan with World App: <a href="' +
+              request.connectorURI +
+              '" target="_blank" rel="noreferrer">open link</a> (waiting…)';
+          }
+
+          const completion = await request.pollUntilCompletion({
+            pollInterval: 2000,
+            timeout: 120000,
+          });
+          if (!completion.success) {
+            gateStatus.textContent = "Selfie check failed: " + (completion.error ?? "unknown");
+            proveHuman.disabled = false;
+            return;
+          }
+
+          const verified = await fetch("/api/world/verify", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(completion.result),
+          }).then((r) => r.json());
+
+          if (!verified.ok) {
+            gateStatus.textContent = "Server rejected proof — try demo bypass or swap slot 3 sponsor.";
+            proveHuman.disabled = false;
+            return;
+          }
+          await markHumanVerified(false);
+        } catch (e) {
+          gateStatus.textContent = String(e);
+          proveHuman.disabled = false;
+        }
+      });
+
+      demoBypass.addEventListener("click", async () => {
+        demoBypass.disabled = true;
+        const res = await fetch("/api/world/demo-verify", { method: "POST" }).then((r) => r.json());
+        if (!res.ok) {
+          gateStatus.textContent = res.error ?? "demo bypass failed";
+          demoBypass.disabled = false;
+          return;
+        }
+        await markHumanVerified(true);
+      });
 
       buy.addEventListener("click", async () => {
         done.hidden = true;
         out.textContent = "{}";
         buy.disabled = true;
-        statusEl.textContent = "Starting…";
+        stepPay.className = "step active";
+        statusEl.textContent = "Starting clue purchase…";
         const res = await fetch("/api/buy", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -148,8 +326,10 @@
           }),
         });
         if (res.headers.get("content-type")?.includes("application/json")) {
-          out.textContent = JSON.stringify(await res.json(), null, 2);
-          buy.disabled = false;
+          const data = await res.json();
+          out.textContent = JSON.stringify(data, null, 2);
+          statusEl.textContent = data.message ?? data.error ?? "Stopped";
+          buy.disabled = !config?.walletReady;
           return;
         }
         const reader = res.body.getReader();
@@ -169,7 +349,8 @@
             if (ev === "status") statusEl.textContent = data.message;
             if (ev === "done") {
               done.hidden = false;
-              statusEl.textContent = "Done";
+              stepPay.className = "step done";
+              statusEl.textContent = "Clue delivered";
               out.textContent = JSON.stringify(data, null, 2);
             }
             if (ev === "error") {
@@ -178,7 +359,7 @@
             }
           }
         }
-        buy.disabled = false;
+        buy.disabled = !config?.walletReady;
       });
 
       loadConfig().catch((e) => {

@@ -4,12 +4,20 @@ import express from 'express';
 import { assertHederaAccountId, tinybarsToHbar, type AgentEnv } from '@nextbeat/shared';
 import type { Logger } from 'pino';
 import { createPayingFetch, type PaymentStage } from './x402-client.js';
+import {
+  createRpSignature,
+  hasValidHumanCookie,
+  isWorldConfigured,
+  isWorldGateActive,
+  issueHumanCookie,
+  verifyWithWorld,
+} from './world-gate.js';
 
 const LABELS: Record<PaymentStage, string> = {
-  connecting: 'Requesting the next beat…',
-  payment_required: 'HTTP 402 — signing dust testnet HBAR…',
-  sending: 'Blocky402 settling on hedera:testnet…',
-  accepted: 'Payment settled',
+  connecting: 'Opening the dossier…',
+  payment_required: 'Clue locked — signing dust testnet HBAR…',
+  sending: 'Settling clue on hedera:testnet…',
+  accepted: 'Clue unlocked',
 };
 
 function sse(res: express.Response, event: string, data: unknown) {
@@ -19,14 +27,15 @@ function sse(res: express.Response, event: string, data: unknown) {
 export function createAgentApp(env: AgentEnv, logger: Logger) {
   const app = express();
   app.disable('x-powered-by');
-  app.use(express.json({ limit: '32kb' }));
+  app.use(express.json({ limit: '64kb' }));
   const publicDir = join(process.cwd(), 'packages/agent/public');
   app.use(express.static(publicDir, { index: 'index.html', maxAge: 0 }));
 
   let spent = 0n;
   const payerReady = Boolean(env.HEDERA_AGENT_ACCOUNT_ID && env.HEDERA_AGENT_PRIVATE_KEY);
+  const worldGate = isWorldGateActive(env);
 
-  app.get('/api/config', (_req, res) => {
+  app.get('/api/config', (req, res) => {
     const payTo = env.HEDERA_SERVICE_ACCOUNT_ID;
     res.json({
       network: 'hedera:testnet',
@@ -38,10 +47,75 @@ export function createAgentApp(env: AgentEnv, logger: Logger) {
       serviceAccountId: payTo ?? null,
       walletReady: payerReady,
       hashscanService: payTo ? `https://hashscan.io/testnet/account/${payTo}` : null,
+      slot3Sponsor: env.SLOT_3_SPONSOR,
+      worldGate,
+      worldConfigured: isWorldConfigured(env),
+      worldDemoGate: env.WORLD_DEMO_GATE,
+      humanVerified: !worldGate || hasValidHumanCookie(req, env),
+      worldAppId: env.WORLD_APP_ID ?? null,
+      worldRpId: env.WORLD_RP_ID ?? null,
+      worldAction: env.WORLD_ACTION,
     });
   });
 
+  app.get('/api/world/sign', async (_req, res) => {
+    if (!worldGate) {
+      res.status(404).json({ error: 'world_gate_disabled' });
+      return;
+    }
+    if (!isWorldConfigured(env)) {
+      res.status(503).json({ error: 'world_not_configured', demoGate: env.WORLD_DEMO_GATE });
+      return;
+    }
+    try {
+      res.json(await createRpSignature(env));
+    } catch (err) {
+      logger.error({ err }, 'world sign failed');
+      res.status(500).json({ error: 'world_sign_failed' });
+    }
+  });
+
+  app.post('/api/world/verify', async (req, res) => {
+    if (!worldGate) {
+      res.status(404).json({ error: 'world_gate_disabled' });
+      return;
+    }
+    if (!isWorldConfigured(env)) {
+      res.status(503).json({ error: 'world_not_configured' });
+      return;
+    }
+    try {
+      const ok = await verifyWithWorld(env, req.body);
+      if (!ok) {
+        res.status(401).json({ ok: false, error: 'world_verify_failed' });
+        return;
+      }
+      issueHumanCookie(res, env);
+      res.json({ ok: true, sponsor: 'world' });
+    } catch (err) {
+      logger.error({ err }, 'world verify failed');
+      res.status(502).json({ ok: false, error: 'world_verify_unreachable' });
+    }
+  });
+
+  app.post('/api/world/demo-verify', (req, res) => {
+    if (!worldGate || !env.WORLD_DEMO_GATE) {
+      res.status(404).json({ error: 'demo_gate_disabled' });
+      return;
+    }
+    issueHumanCookie(res, env);
+    res.json({ ok: true, demo: true, sponsor: 'world' });
+  });
+
   app.post('/api/buy', async (req, res) => {
+    if (worldGate && !hasValidHumanCookie(req, env)) {
+      res.status(403).json({
+        error: 'human_gate_required',
+        message: 'Pass World Selfie Check before buying a clue.',
+        slot3Sponsor: env.SLOT_3_SPONSOR,
+      });
+      return;
+    }
     if (!payerReady || !env.HEDERA_AGENT_ACCOUNT_ID || !env.HEDERA_AGENT_PRIVATE_KEY) {
       res.status(503).json({ error: 'Agent wallet not configured' });
       return;
@@ -77,7 +151,7 @@ export function createAgentApp(env: AgentEnv, logger: Logger) {
       });
       const payload: unknown = await response.json();
       if (!response.ok) {
-        sse(res, 'error', { error: 'beat_failed', status: response.status, payload });
+        sse(res, 'error', { error: 'clue_failed', status: response.status, payload });
       } else {
         spent += env.PAYCALL_PRICE_TINYBARS;
         sse(res, 'done', {

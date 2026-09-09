@@ -14,4 +14,6 @@ npm run dev
 - Desk: http://127.0.0.1:3001  
 - Smoke (expects HTTP 402): `npm run smoke`
 
+**Slot 3:** `SLOT_3_SPONSOR=world` + World portal keys, or `WORLD_DEMO_GATE=true` for local bypass. Change sponsor via env if the gate doesn't work in sandbox.
+
 Git protocol: [GIT.md](./GIT.md).

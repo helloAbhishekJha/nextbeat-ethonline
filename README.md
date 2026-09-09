@@ -2,7 +2,7 @@
 
 **Author:** Abhishek Jha  
 
-ETHOnline 2026 · **Hedera** · **The Graph** · **Bazantic**
+ETHOnline 2026 · **Hedera** · **The Graph** · **World** (slot 3 pilot — swap to ENS/Bazantic if needed)
 
 NextBeat is a small wire desk for onchain research. You pick an assignment (for example treasury vs lending). The service pulls live protocol data from The Graph, checks Hedera testnet state, and returns the **next beat** of the investigation. That brief is paid with a tiny amount of testnet HBAR using **x402** (Blocky402 facilitator).
 
@@ -50,6 +50,8 @@ flowchart LR
 3. Call **brief** — the service answers `402 Payment Required`.  
 4. The agent pays dust HBAR through Blocky402 on testnet.  
 5. After settle, you get the next investigation beat (Graph + Hedera fused). Optional: a short receipt on an HCS topic.
+
+**Slot 3 (pilot):** World Selfie Check gates the desk so bots can't burn agent HBAR. Set `WORLD_DEMO_GATE=true` locally without portal keys; swap `SLOT_3_SPONSOR` to `ens` or `bazantic` if World doesn't ship.
 
 ## Repo layout
 

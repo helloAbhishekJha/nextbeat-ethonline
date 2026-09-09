@@ -28,6 +28,11 @@ export const serviceEnvSchema = z.object({
   ),
 });
 
+const boolFromEnv = z.preprocess(
+  (v) => v === 'true' || v === '1' || v === true,
+  z.boolean().default(false),
+);
+
 export const agentEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   HOST: z.string().default('127.0.0.1'),
@@ -39,6 +44,12 @@ export const agentEnvSchema = z.object({
   PAYCALL_PRICE_TINYBARS: tinybars.default(1000n),
   PAYCALL_BUDGET_TINYBARS: tinybars.default(5_000_000n),
   SERVICE_PUBLIC_URL: z.string().url().default('http://127.0.0.1:4021'),
+  SLOT_3_SPONSOR: z.enum(['none', 'world', 'ens', 'bazantic']).default('world'),
+  WORLD_APP_ID: z.string().optional(),
+  WORLD_RP_ID: z.string().optional(),
+  WORLD_ACTION: z.string().default('nextbeat-desk'),
+  WORLD_SIGNING_KEY_HEX: z.string().optional(),
+  WORLD_DEMO_GATE: boolFromEnv,
 });
 
 export type ServiceEnv = z.infer<typeof serviceEnvSchema>;
