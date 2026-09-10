@@ -2,7 +2,11 @@ import { z } from 'zod';
 
 const accountId = z
   .string()
-  .regex(/^0\.0\.\d+$/, 'Hedera account id must look like 0.0.1234');
+  .trim()
+  .regex(
+    /^0\.0\.\d+$/,
+    'Hedera account id must be digits only (e.g. 0.0.6154321 from portal.hedera.com — not 0.0.XXXXX)',
+  );
 
 const tinybars = z.coerce.bigint().refine((n) => n >= 1n, 'tinybars must be >= 1');
 
