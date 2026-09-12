@@ -101,7 +101,8 @@ function redactEndpoint(url: string): string {
     u.search = '';
     u.username = '';
     u.password = '';
-    return `${u.origin}${u.pathname}`;
+    const path = u.pathname.replace(/\/api\/[^/]+\/subgraphs\//, '/api/***/subgraphs/');
+    return `${u.origin}${path}`;
   } catch {
     return 'invalid-url';
   }

@@ -51,7 +51,7 @@ flowchart LR
 4. The agent pays dust HBAR through Blocky402 on testnet.  
 5. After settle, you get the next investigation beat (Graph + Hedera fused). Optional: a short receipt on an HCS topic.
 
-**Slot 3 (pilot):** World Selfie Check gates the desk so bots can't burn agent HBAR. Set `WORLD_DEMO_GATE=true` locally without portal keys; swap `SLOT_3_SPONSOR` to `ens` or `bazantic` if World doesn't ship.
+**Slot 3:** World Selfie Check gates the desk before x402 spend. World feedback: [`docs/world-selfie-feedback.md`](./docs/world-selfie-feedback.md). Prize alignment: [`plan.md`](./plan.md#sponsor-prize-alignment-ethonline-2026).
 
 ## Repo layout
 

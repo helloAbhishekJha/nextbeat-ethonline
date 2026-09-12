@@ -10,7 +10,10 @@ export function createPayingFetch(accountId: string, ecdsaPrivateKey: string): {
   const signer = createClientHederaSigner(accountId, PrivateKey.fromStringECDSA(ecdsaPrivateKey), {
     network: 'hedera:testnet',
   });
-  const client = new x402Client().register('hedera:testnet', new ExactHederaScheme(signer));
+  // Hedera native HBAR is not a default USD-pegged asset in x402 spendControls.
+  const client = new x402Client()
+    .setSpendControls(false)
+    .register('hedera:testnet', new ExactHederaScheme(signer));
 
   let handler: ((stage: PaymentStage) => void) | undefined;
   const statusFetch: typeof fetch = async (input, init) => {
