@@ -46,6 +46,9 @@ export function createAgentApp(env: AgentEnv, logger: Logger) {
   app.get('/desk-tts.js', (_req, res) => {
     res.sendFile(join(classicPublic, 'desk-tts.js'));
   });
+  app.get('/world-gate-client.js', (_req, res) => {
+    res.sendFile(join(classicPublic, 'world-gate-client.js'));
+  });
   app.use(express.static(publicDir, { index: 'index.html', maxAge: 0 }));
   if (env.DESK_UI !== 'simple') {
     app.use(

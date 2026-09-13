@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>NextBeat — Treasury Risk Desk</title>
-    <script src="https://cdn.jsdelivr.net/npm/@worldcoin/idkit-core"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@worldcoin/idkit-core@4.2.4/dist/idkit.global.js"></script>
+    <script src="/world-gate-client.js" defer></script>
     <script src="/desk-tts.js" defer></script>
     <style>
       :root {
@@ -207,7 +208,8 @@
       <div class="card" id="gateCard" hidden>
         <h2>Step 1 — Authorize session <span class="badge">World Selfie Check</span></h2>
         <p class="hint">
-          Treasury operators only. One selfie stops bots from triggering agent spend on this desk.
+          Treasury operators only. Click below, then <strong>open World App on your phone</strong> and
+          complete the selfie check (this browser shows the link — verification happens on the phone).
         </p>
         <button id="proveHuman" type="button">Authorize with World selfie</button>
         <button id="demoBypass" class="secondary" type="button" hidden>Skip (local testing only)</button>
@@ -426,65 +428,19 @@
       }
 
       proveHuman.addEventListener("click", async () => {
-        if (!window.IDKit) {
+        if (!window.WorldGateClient) {
           gateStatus.textContent = "World sign-in did not load. Refresh and try again.";
           return;
         }
         proveHuman.disabled = true;
-        gateStatus.textContent = "Connecting to World…";
         try {
-          const sig = await fetch("/api/world/sign").then((r) => r.json());
-          if (sig.error) {
-            gateStatus.textContent = sig.demoGate
-              ? "World not configured — use skip for local testing."
-              : "Could not start World selfie. Try again.";
-            proveHuman.disabled = false;
-            return;
-          }
-          const request = await IDKit.request({
-            app_id: config.worldAppId,
-            action: config.worldAction,
-            rp_context: {
-              rp_id: config.worldRpId,
-              nonce: sig.nonce,
-              created_at: sig.created_at,
-              expires_at: sig.expires_at,
-              signature: sig.sig,
-            },
-            allow_legacy_proofs: true,
-          }).preset(IDKit.selfieCheckLegacy({ signal: sig.nonce }));
-
-          if (request.connectorURI) {
-            gateStatus.innerHTML =
-              'Open World App: <a href="' +
-              request.connectorURI +
-              '" target="_blank" rel="noreferrer">tap here</a> (waiting…)';
-          }
-
-          const completion = await request.pollUntilCompletion({
-            pollInterval: 2000,
-            timeout: 120000,
+          await WorldGateClient.startWorldSelfie({
+            config,
+            statusEl: gateStatus,
+            onVerified: () => markHumanVerified(false),
           });
-          if (!completion.success) {
-            gateStatus.textContent = "Selfie check did not complete. Try again.";
-            proveHuman.disabled = false;
-            return;
-          }
-
-          const verified = await fetch("/api/world/verify", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify(completion.result),
-          }).then((r) => r.json());
-
-          if (!verified.ok) {
-            gateStatus.textContent = "Could not verify selfie. Try again.";
-            proveHuman.disabled = false;
-            return;
-          }
-          await markHumanVerified(false);
         } catch (e) {
-          gateStatus.textContent = "Something went wrong. Try again.";
+          gateStatus.textContent = WorldGateClient.formatWorldError(e);
           proveHuman.disabled = false;
         }
       });
