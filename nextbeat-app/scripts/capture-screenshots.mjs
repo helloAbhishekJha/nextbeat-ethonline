@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -11,6 +11,17 @@ const vendorQuestion =
 
 mkdirSync(outDir, { recursive: true });
 
+function setSteps(page, active) {
+  return page.evaluate((which) => {
+    const map = { human: 'stepHuman', case: 'stepCase', pay: 'stepPay' };
+    for (const [key, id] of Object.entries(map)) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      el.className = key === which ? 'step active' : which === 'pay' || (which === 'case' && key === 'human') ? 'step done' : 'step';
+    }
+  }, active);
+}
+
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 
@@ -18,53 +29,74 @@ await page.goto(baseUrl, { waitUntil: 'networkidle' });
 await page.waitForFunction(() => window.DeskResults != null);
 await page.waitForTimeout(1000);
 
-// 01 — World Selfie gate (Step 1), case locked
+// 01 — World gate ONLY (no case form visible)
 await page.evaluate(() => {
-  const gateCard = document.getElementById('gateCard');
-  const gateDoneCard = document.getElementById('gateDoneCard');
-  const caseCard = document.getElementById('caseCard');
-  const walletCard = document.getElementById('walletCard');
-  const stepHuman = document.getElementById('stepHuman');
-  const stepCase = document.getElementById('stepCase');
-  const stepPay = document.getElementById('stepPay');
-  if (gateCard) gateCard.hidden = false;
-  if (gateDoneCard) gateDoneCard.hidden = true;
-  if (caseCard) caseCard.classList.add('locked');
-  if (walletCard) walletCard.hidden = true;
-  if (stepHuman) stepHuman.className = 'step active';
-  if (stepCase) stepCase.className = 'step';
-  if (stepPay) stepPay.className = 'step';
+  const hide = ['caseCard', 'gateDoneCard', 'resultCard', 'verifyCard', 'walletCard'];
+  for (const id of hide) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  }
+  const gate = document.getElementById('gateCard');
+  if (gate) {
+    gate.hidden = false;
+    gate.style.display = '';
+  }
+  window.scrollTo(0, 0);
 });
+await setSteps(page, 'human');
 await page.locator('#gateCard').scrollIntoViewIfNeeded();
 await page.waitForTimeout(400);
 await page.screenshot({ path: join(outDir, 'screenshot-01-desk.png'), fullPage: false });
 
-// 02 — Step 1 done + treasury case filled (Step 2)
+// 02 — Step 2 case form ONLY (World done banner + filled question + Buy)
 await page.evaluate(() => {
-  const gateCard = document.getElementById('gateCard');
-  const gateDoneCard = document.getElementById('gateDoneCard');
+  const gate = document.getElementById('gateCard');
+  if (gate) gate.style.display = 'none';
+
+  const done = document.getElementById('gateDoneCard');
+  if (done) {
+    done.hidden = false;
+    done.style.display = '';
+  }
+
   const caseCard = document.getElementById('caseCard');
-  const walletCard = document.getElementById('walletCard');
+  if (caseCard) {
+    caseCard.style.display = '';
+    caseCard.classList.remove('locked');
+  }
+
   const buy = document.getElementById('buy');
-  const stepHuman = document.getElementById('stepHuman');
-  const stepCase = document.getElementById('stepCase');
-  const stepPay = document.getElementById('stepPay');
-  if (gateCard) gateCard.hidden = true;
-  if (gateDoneCard) gateDoneCard.hidden = false;
-  if (caseCard) caseCard.classList.remove('locked');
-  if (walletCard) walletCard.hidden = false;
   if (buy) buy.disabled = false;
-  if (stepHuman) stepHuman.className = 'step done';
-  if (stepCase) stepCase.className = 'step active';
-  if (stepPay) stepPay.className = 'step';
+
+  for (const id of ['resultCard', 'verifyCard', 'walletCard']) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  }
 });
+await setSteps(page, 'case');
 await page.locator('#assignment').fill(vendorQuestion);
 await page.getByRole('button', { name: /Vendor batch/i }).click({ force: true });
-await page.locator('#caseCard').scrollIntoViewIfNeeded();
+await page.evaluate(() => {
+  const status = document.getElementById('status');
+  if (status) status.textContent = 'Case loaded — buy a beat to see the live answer.';
+});
+await page.evaluate(() => {
+  const card = document.getElementById('gateDoneCard');
+  const top = (card?.offsetTop ?? 0) - 12;
+  window.scrollTo(0, Math.max(0, top));
+});
 await page.waitForTimeout(500);
 await page.screenshot({ path: join(outDir, 'screenshot-02-assignment.png'), fullPage: false });
 
-// 03 — settled beat (agent run + reasoning + HashScan proof)
+// 03 — settled beat
+await page.evaluate(() => {
+  for (const id of ['gateCard', 'gateDoneCard', 'caseCard']) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  }
+  const result = document.getElementById('resultCard');
+  if (result) result.style.display = '';
+});
 await page.evaluate((question) => {
   const beat = {
     case: question,
@@ -101,56 +133,49 @@ await page.evaluate((question) => {
         { accountId: '0.0.10449882', amountTinybars: 1000, role: 'treasury' },
       ],
     },
-    hashscan:
-      'https://hashscan.io/testnet/transaction/1789316805.391572804?tid=0.0.7162784-1789316799-254727691',
     payload: { beat },
   };
-  const report = document.getElementById('report');
-  const verifyLinks = document.getElementById('verifyLinks');
-  const vizBlock = document.getElementById('vizBlock');
-  const agentRun = document.getElementById('agentRun');
-  const detailsBlock = document.getElementById('detailsBlock');
-  const out = document.getElementById('out');
-  const done = document.getElementById('done');
-  const stepPay = document.getElementById('stepPay');
-  const config = window.__nextbeatConfig ?? {
+  const config = {
     agentAccountId: '0.0.10456496',
     serviceAccountId: '0.0.10449882',
     blocky402FacilitatorAccountId: '0.0.7162784',
   };
-  if (window.DeskResults) {
-    window.DeskResults.updateAfterBeat({
-      data,
-      paymentTxId: data.paymentTxId,
-      vizRoot: vizBlock,
-      agentRoot: agentRun,
-      verifyRoot: verifyLinks,
-      config,
-    });
-    const { beat: b, reasoning } = window.DeskResults.extractBeat(data);
-    if (report) {
-      report.textContent = reasoning || beat.reasoning;
-      report.hidden = false;
-    }
-    if (out) out.textContent = JSON.stringify(b, null, 2);
-    if (detailsBlock) detailsBlock.hidden = false;
-    if (done) done.hidden = false;
-    const verifyCard = document.getElementById('verifyCard');
-    if (verifyCard) verifyCard.hidden = false;
-    if (stepPay) stepPay.className = 'step done';
+  window.DeskResults.updateAfterBeat({
+    data,
+    paymentTxId: data.paymentTxId,
+    vizRoot: document.getElementById('vizBlock'),
+    agentRoot: document.getElementById('agentRun'),
+    verifyRoot: document.getElementById('verifyLinks'),
+    config,
+  });
+  const { reasoning } = window.DeskResults.extractBeat(data);
+  const report = document.getElementById('report');
+  if (report) {
+    report.textContent = reasoning || beat.reasoning;
+    report.hidden = false;
   }
+  const doneEl = document.getElementById('done');
+  if (doneEl) doneEl.hidden = false;
+  const verifyCard = document.getElementById('verifyCard');
+  if (verifyCard) {
+    verifyCard.hidden = false;
+    verifyCard.style.display = '';
+  }
+  const stepPay = document.getElementById('stepPay');
+  if (stepPay) stepPay.className = 'step done';
 }, vendorQuestion);
 
-await page.waitForTimeout(800);
-await page.locator('#agentRun').scrollIntoViewIfNeeded();
-await page.waitForTimeout(400);
+await page.evaluate(() => {
+  const el = document.getElementById('resultCard');
+  const top = (el?.offsetTop ?? 0) - 16;
+  window.scrollTo(0, Math.max(0, top));
+});
+await page.waitForTimeout(500);
 await page.screenshot({ path: join(outDir, 'screenshot-03-beat.png'), fullPage: false });
 
 await browser.close();
 
-const { statSync } = await import('node:fs');
 for (const name of ['screenshot-01-desk.png', 'screenshot-02-assignment.png', 'screenshot-03-beat.png']) {
-  const bytes = statSync(join(outDir, name)).size;
-  console.log(`${name}: ${bytes} bytes`);
+  console.log(`${name}: ${statSync(join(outDir, name)).size} bytes`);
 }
 console.log('Wrote screenshots to', outDir);
