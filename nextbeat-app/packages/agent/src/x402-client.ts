@@ -3,7 +3,11 @@ import { ExactHederaScheme, createClientHederaSigner, PrivateKey } from '@x402/h
 
 export type PaymentStage = 'connecting' | 'payment_required' | 'sending' | 'accepted';
 
-export function createPayingFetch(accountId: string, ecdsaPrivateKey: string): {
+export function createPayingFetch(
+  accountId: string,
+  ecdsaPrivateKey: string,
+  baseFetch: typeof fetch = globalThis.fetch,
+): {
   fetchWithPayment: typeof fetch;
   onStatus: (handler: (stage: PaymentStage) => void) => void;
 } {
@@ -21,12 +25,12 @@ export function createPayingFetch(accountId: string, ecdsaPrivateKey: string): {
     const retry = req.headers.has('PAYMENT-SIGNATURE') || req.headers.has('X-PAYMENT');
     if (!retry) {
       handler?.('connecting');
-      const res = await globalThis.fetch(input, init);
+      const res = await baseFetch(input, init);
       if (res.status === 402) handler?.('payment_required');
       return res;
     }
     handler?.('sending');
-    const res = await globalThis.fetch(input, init);
+    const res = await baseFetch(input, init);
     if (res.ok) handler?.('accepted');
     return res;
   };

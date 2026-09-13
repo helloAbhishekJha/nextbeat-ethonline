@@ -207,5 +207,9 @@
     return { status: "verified" };
   }
 
-  global.WorldGateClient = { startWorldSelfie, recheckPending, formatWorldError };
+  function resetSession() {
+    pending = null;
+  }
+
+  global.WorldGateClient = { startWorldSelfie, recheckPending, resetSession, formatWorldError };
 })(window);

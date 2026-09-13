@@ -16,10 +16,14 @@ export const serviceEnvSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(4021),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   HEDERA_SERVICE_ACCOUNT_ID: accountId.default('0.0.3'),
+  /** Agent payer — filters mirror txs to beat payments only when set with service account. */
+  HEDERA_AGENT_ACCOUNT_ID: accountId.optional(),
   HEDERA_SERVICE_PRIVATE_KEY: z.string().optional(),
   PAYCALL_PRICE_TINYBARS: tinybars.default(1000n),
   PAYCALL_PRICE_CAP_TINYBARS: tinybars.default(100000n),
   X402_TESTNET_FACILITATOR_URL: z.string().url().default('https://api.testnet.blocky402.com'),
+  /** Blocky402 verify/settle/supported HTTP timeout (ms). Keep under Vercel maxDuration. */
+  X402_FACILITATOR_TIMEOUT_MS: z.coerce.number().int().min(5000).max(120_000).default(55_000),
   HEDERA_MIRROR_URL: z.string().url().default('https://testnet.mirrornode.hedera.com'),
   GRAPH_QUERY_URLS: z.string().optional(),
   GRAPH_API_KEY: z.string().optional(),
@@ -30,6 +34,15 @@ export const serviceEnvSchema = z.object({
       .regex(/^0\.0\.\d+$/)
       .optional(),
   ),
+  /** Groq (fast fallback) — OpenAI-compatible chat/completions */
+  GROQ_API_KEY: z.string().optional(),
+  OPENAI_API_KEY: z.string().optional(),
+  /** Hedera x402 inference PoC pattern — LM Studio or other OpenAI-compatible host */
+  LLM_BASE_URL: z.string().url().optional(),
+  LLM_API_KEY: z.string().optional(),
+  LLM_MODEL: z.string().optional(),
+  LLM_TIMEOUT_MS: z.coerce.number().int().min(3000).max(60_000).default(25_000),
+  BLOCKY402_FACILITATOR_ACCOUNT_ID: accountId.optional(),
 });
 
 const boolFromEnv = z.preprocess(
@@ -56,6 +69,9 @@ export const agentEnvSchema = z.object({
   WORLD_DEMO_GATE: boolFromEnv,
   /** classic = submission desk UI; simple = plain-language beta UI */
   DESK_UI: z.enum(['classic', 'simple']).default('classic'),
+  HEDERA_MIRROR_URL: z.string().url().default('https://testnet.mirrornode.hedera.com'),
+  /** Blocky402 x402 facilitator — pays network fees on HashScan (not our agent/treasury). */
+  BLOCKY402_FACILITATOR_ACCOUNT_ID: accountId.optional(),
 });
 
 export type ServiceEnv = z.infer<typeof serviceEnvSchema>;

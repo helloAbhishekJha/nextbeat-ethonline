@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@worldcoin/idkit-core@4.2.4/dist/idkit.global.js"></script>
     <script src="/world-gate-client.js" defer></script>
     <script src="/desk-tts.js" defer></script>
+    <script src="/desk-results.js" defer></script>
     <style>
       :root {
         color-scheme: dark;
@@ -130,6 +131,29 @@
       button:disabled { opacity: 0.45; cursor: not-allowed; }
       .meta { font-size: 0.8rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 0.75rem; }
       .meta a { color: var(--accent); }
+      .powered-row {
+        margin-top: 0.85rem;
+        padding-top: 0.85rem;
+        border-top: 1px solid var(--line);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .powered-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+      .tech-btns { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+      .tech-btn {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.35rem 0.65rem;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        color: var(--text);
+        text-decoration: none;
+        background: #0c1018;
+      }
+      .tech-btn:hover { border-color: var(--accent); color: var(--accent); }
       .status { font-family: ui-monospace, monospace; font-size: 0.82rem; min-height: 1.3em; margin: 0.75rem 0 0; }
       .hint { font-size: 0.85rem; color: var(--muted); line-height: 1.5; margin: 0; }
       .report {
@@ -240,6 +264,112 @@
       .world-recheck-btn { margin-top: 0.35rem; border-color: var(--accent); color: var(--accent); }
       .world-hint { font-size: 0.78rem; }
       .world-wait-timeout { color: var(--warn); }
+      .viz-title { font-size: 0.92rem; font-weight: 650; margin: 0 0 0.65rem; }
+      .viz-subtitle { font-size: 0.82rem; font-weight: 650; margin: 1rem 0 0.4rem; color: var(--muted); }
+      .viz-chart-wrap {
+        background: #0c1018;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+      .viz-canvas { width: 100%; height: auto; display: block; }
+      .viz-legend { display: grid; gap: 0.35rem; margin-bottom: 0.5rem; }
+      .viz-legend-row {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      .viz-dot { width: 8px; height: 8px; border-radius: 999px; flex: 0 0 auto; }
+      .viz-val { margin-left: auto; color: var(--text); font-variant-numeric: tabular-nums; }
+      .viz-fail { font-size: 0.78rem; color: var(--warn); margin: 0.35rem 0 0; }
+      .viz-tx-list {
+        margin: 0;
+        padding-left: 1.1rem;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .viz-tx-list a { color: var(--accent); }
+      .viz-tx-meta { opacity: 0.85; }
+      .verify-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 0.55rem;
+      }
+      .verify-list a { color: var(--accent); font-weight: 600; font-size: 0.88rem; }
+      .verify-meta {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 0.15rem;
+        font-weight: 400;
+      }
+      li.verify-meta { list-style: none; }
+      .verify-empty { font-size: 0.82rem; color: var(--muted); margin: 0; }
+      .verify-blocky-note {
+        font-size: 0.8rem;
+        color: var(--muted);
+        line-height: 1.5;
+        margin: 0 0 0.75rem;
+      }
+      .verify-blocky-note code { font-size: 0.78rem; color: var(--text); }
+      .verify-transfers { margin: 0 0 0.75rem; padding-left: 1rem; font-size: 0.82rem; color: var(--text); }
+      .verify-transfer { margin-bottom: 0.25rem; font-variant-numeric: tabular-nums; }
+      .wallet-title { font-size: 0.95rem; font-weight: 650; margin: 0 0 0.25rem; }
+      .wallet-phase {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        margin: 0 0 0.65rem;
+      }
+      .wallet-grid { display: grid; gap: 0.55rem; }
+      .wallet-row {
+        display: grid;
+        grid-template-columns: 7.5rem 1fr auto;
+        gap: 0.5rem 0.75rem;
+        align-items: center;
+        padding: 0.55rem 0.65rem;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #0c1018;
+        font-size: 0.82rem;
+      }
+      .wallet-role { color: var(--muted); font-weight: 600; }
+      .wallet-id { font-family: ui-monospace, monospace; font-size: 0.78rem; }
+      .wallet-bal-col { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; justify-content: flex-end; }
+      .wallet-bal { font-variant-numeric: tabular-nums; font-weight: 650; }
+      .wallet-delta {
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.15rem 0.45rem;
+        border-radius: 6px;
+        font-variant-numeric: tabular-nums;
+      }
+      .wallet-delta.delta-up { background: rgba(61, 214, 140, 0.18); color: var(--ok); border: 1px solid rgba(61, 214, 140, 0.35); }
+      .wallet-delta.delta-down { background: rgba(245, 100, 100, 0.12); color: #f58a8a; border: 1px solid rgba(245, 100, 100, 0.3); }
+      .wallet-blocky-note {
+        font-size: 0.78rem;
+        color: var(--muted);
+        line-height: 1.45;
+        margin: 0.75rem 0 0;
+      }
+      .wallet-blocky-note code { color: var(--text); font-size: 0.76rem; }
+      .agent-title { font-size: 0.92rem; font-weight: 650; margin: 0 0 0.25rem; }
+      .agent-pattern { font-size: 0.78rem; color: var(--muted); margin: 0 0 0.55rem; }
+      .agent-steps { margin: 0; padding-left: 1rem; font-size: 0.8rem; line-height: 1.45; color: var(--muted); }
+      .agent-step { margin-bottom: 0.35rem; }
+      .agent-sponsor {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--accent);
+        font-weight: 650;
+      }
     </style>
   </head>
   <body>
@@ -249,8 +379,8 @@
         <div>
           <h1>NextBeat</h1>
           <p class="lead">
-            Treasury risk desk for agentic payments on Hedera testnet. A <strong>finance operator</strong>
-            authorizes the session (World). The <strong>agent wallet</strong> pays each risk beat over x402.
+            <strong>Treasury Risk Agent</strong> for agentic payments on Hedera testnet — sponsor stack:
+            World (human gate) → Hedera agent wallet (x402) → The Graph (live DeFi data) → reasoning.
             Each beat fuses live DeFi data from <strong>The Graph</strong> with treasury activity on
             <strong>Hedera</strong>.
           </p>
@@ -263,7 +393,14 @@
         <div class="step" id="stepPay">3 · Buy beat</div>
       </div>
 
-      <div class="card"><div class="meta" id="meta">Loading…</div></div>
+      <div class="card">
+        <div class="meta" id="meta">Loading…</div>
+        <div class="powered-row" id="powered" hidden></div>
+      </div>
+
+      <div class="card" id="walletCard" hidden>
+        <div id="walletPanel"></div>
+      </div>
 
       <div class="card" id="gateCard" hidden>
         <h2>Step 1 — Authorize session <span class="badge">World Selfie Check</span></h2>
@@ -320,16 +457,21 @@
         <p class="status" id="status"></p>
       </div>
 
-      <div class="card">
+      <div class="card" id="resultCard">
         <div class="ok" id="done" hidden>Beat delivered — payment settled on Hedera testnet</div>
+        <div id="vizBlock" hidden></div>
+        <div id="agentRun" hidden></div>
         <div class="report" id="report" hidden></div>
-        <p class="hint" id="hashscanLine" hidden>
-          <a id="hashscanLink" href="#" target="_blank" rel="noreferrer">View payment on HashScan</a>
-        </p>
         <details id="detailsBlock" hidden>
           <summary>Technical details (JSON)</summary>
           <pre id="out">{}</pre>
         </details>
+      </div>
+
+      <div class="card" id="verifyCard" hidden>
+        <h2>On-chain proof</h2>
+        <p class="hint">HashScan links for transactions from this beat (payment + treasury activity).</p>
+        <div id="verifyLinks"></div>
       </div>
     </main>
     <script>
@@ -338,9 +480,14 @@
       const gateStatus = document.getElementById("gateStatus");
       const out = document.getElementById("out");
       const report = document.getElementById("report");
-      const hashscanLine = document.getElementById("hashscanLine");
-      const hashscanLink = document.getElementById("hashscanLink");
       const detailsBlock = document.getElementById("detailsBlock");
+      const walletCard = document.getElementById("walletCard");
+      const walletPanel = document.getElementById("walletPanel");
+      const vizBlock = document.getElementById("vizBlock");
+      const agentRun = document.getElementById("agentRun");
+      const verifyLinks = document.getElementById("verifyLinks");
+      const powered = document.getElementById("powered");
+      const verifyCard = document.getElementById("verifyCard");
       const buy = document.getElementById("buy");
       const done = document.getElementById("done");
       const gateCard = document.getElementById("gateCard");
@@ -355,6 +502,7 @@
       const stepPay = document.getElementById("stepPay");
 
       let config = null;
+      let balancesBefore = null;
 
       const EXAMPLE_CASES = [
         {
@@ -415,15 +563,36 @@
       }
 
       async function resetHumanGate() {
-        await fetch("/api/world/logout", { method: "POST" });
-        gateDoneCard.hidden = true;
-        gateCard.hidden = false;
-        proveHuman.disabled = false;
-        gateStatus.textContent = "";
-        lockCase();
-        resetResult();
-        statusEl.textContent = "";
-        await loadConfig();
+        reauthorizeHuman.disabled = true;
+        if (window.WorldGateClient?.resetSession) WorldGateClient.resetSession();
+        try {
+          const logout = await fetch("/api/world/logout", {
+            method: "POST",
+            credentials: "same-origin",
+          }).then((r) => r.json());
+          if (!logout.ok) {
+            throw new Error("logout_failed");
+          }
+          if (config) config.humanVerified = false;
+          gateDoneCard.hidden = true;
+          gateCard.hidden = false;
+          proveHuman.disabled = false;
+          gateStatus.textContent = "";
+          lockCase();
+          resetResult();
+          statusEl.textContent = "Desk session cleared — run World selfie again on your phone.";
+          await loadConfig();
+          if (config?.humanVerified) {
+            statusEl.textContent =
+              "Could not clear desk session. Hard-refresh or use a private window, then try again.";
+            gateDoneCard.hidden = false;
+            gateCard.hidden = true;
+          }
+        } catch {
+          statusEl.textContent = "Sign-out failed. Hard-refresh the page and try again.";
+        } finally {
+          reauthorizeHuman.disabled = false;
+        }
       }
 
       function renderExampleCases() {
@@ -454,26 +623,73 @@
       function resetResult() {
         if (window.DeskTTS) DeskTTS.stop();
         done.hidden = true;
+        vizBlock.hidden = true;
+        vizBlock.innerHTML = "";
+        agentRun.hidden = true;
+        agentRun.innerHTML = "";
         report.hidden = true;
         report.textContent = "";
         report.classList.remove("speaking");
-        hashscanLine.hidden = true;
         detailsBlock.hidden = true;
         out.textContent = "{}";
+        balancesBefore = null;
+        if (window.DeskResults) {
+          DeskResults.mountVerifyFooter(verifyLinks);
+          refreshWalletPanel("idle");
+        }
+      }
+
+      async function refreshWalletPanel(phase, beforeMap) {
+        if (!window.DeskResults || !config) return;
+        const wallets = await DeskResults.fetchBalances();
+        walletCard.hidden = false;
+        DeskResults.renderWalletPanel(walletPanel, {
+          config,
+          wallets,
+          phase,
+          before: beforeMap ?? balancesBefore ?? {},
+          facilitatorId: config.blocky402FacilitatorAccountId,
+        });
+      }
+
+      function buyErrorMessage(data) {
+        const raw =
+          data?.payload?.error ??
+          data?.payload?.message ??
+          (typeof data?.payload === "string" ? data.payload : null) ??
+          data?.error;
+        if (typeof raw === "string" && raw.includes("Facilitator") && raw.includes("timed out")) {
+          return "Blocky402 payment gateway timed out (Hedera testnet can be slow). Wait a moment and click Buy again.";
+        }
+        if (data?.error === "human_gate_required") {
+          return "Authorize with World selfie first.";
+        }
+        return "Beat failed — see technical details below.";
       }
 
       function showResult(data) {
-        const payload = data.payload ?? data;
+        const extracted = window.DeskResults
+          ? DeskResults.updateAfterBeat({
+              data,
+              paymentTxId: data.paymentTxId ?? null,
+              vizRoot: vizBlock,
+              agentRoot: agentRun,
+              verifyRoot: verifyLinks,
+              config,
+            })
+          : { beat: data?.payload?.beat ?? data?.payload ?? data, reasoning: "" };
+        const { beat, reasoning } = extracted;
         detailsBlock.hidden = false;
-        out.textContent = JSON.stringify(payload, null, 2);
-        if (payload?.reasoning) {
-          report.textContent = payload.reasoning;
+        out.textContent = JSON.stringify(beat, null, 2);
+        if (reasoning) {
+          report.textContent = reasoning;
           report.hidden = false;
-          if (window.DeskTTS) DeskTTS.speak(payload.reasoning, report);
+          report.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          if (window.DeskTTS) DeskTTS.speak(reasoning, report);
         }
-        if (data.hashscan) {
-          hashscanLink.href = data.hashscan;
-          hashscanLine.hidden = false;
+        refreshWalletPanel("after", balancesBefore);
+        if (!verifyCard.hidden) {
+          verifyCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
       }
 
@@ -482,16 +698,15 @@
         buy.textContent = `Buy next beat (agent pays ${config.settleHbar} testnet HBAR)`;
         meta.innerHTML = [
           "<span>Hedera testnet</span>",
-          "<span>The Graph</span>",
-          config.slot3Sponsor === "world" ? "<span>World</span>" : "",
           config.agentAccountId ? `<span>Agent ${config.agentAccountId}</span>` : "",
-          config.hashscanService
-            ? `<a href="${config.hashscanService}" target="_blank" rel="noreferrer">HashScan receipts</a>`
-            : "",
           config.walletReady ? "<span>Agent wallet ready</span>" : "<span>Agent wallet not configured</span>",
         ]
           .filter(Boolean)
           .join("");
+        if (window.DeskResults) {
+          DeskResults.mountPoweredBy(config, powered);
+          powered.hidden = false;
+        }
         if (config.worldGate && !config.humanVerified) {
           gateDoneCard.hidden = true;
           gateCard.hidden = false;
@@ -503,6 +718,8 @@
           unlockCase();
         }
         if (!config.walletReady) buy.disabled = true;
+        if (window.DeskResults) DeskResults.mountVerifyFooter(verifyLinks);
+        await refreshWalletPanel("idle");
       }
 
       async function markHumanVerified(demo) {
@@ -559,6 +776,17 @@
         buy.disabled = true;
         stepCase.className = "step done";
         stepPay.className = "step active";
+        if (window.DeskResults && config) {
+          const wallets = await DeskResults.fetchBalances();
+          balancesBefore = DeskResults.balanceMap(wallets);
+          walletCard.hidden = false;
+          DeskResults.renderWalletPanel(walletPanel, {
+            config,
+            wallets,
+            phase: "before",
+            before: balancesBefore,
+          });
+        }
         statusEl.textContent = "Agent buying next risk beat…";
         const res = await fetch("/api/buy", {
           method: "POST",
@@ -603,7 +831,7 @@
               showResult(data);
             }
             if (ev === "error") {
-              statusEl.textContent = "Beat failed — see details below.";
+              statusEl.textContent = buyErrorMessage(data);
               detailsBlock.hidden = false;
               out.textContent = JSON.stringify(data, null, 2);
             }

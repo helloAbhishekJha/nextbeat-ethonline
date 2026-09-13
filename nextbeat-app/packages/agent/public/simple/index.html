@@ -13,6 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@worldcoin/idkit-core@4.2.4/dist/idkit.global.js"></script>
     <script src="/world-gate-client.js" defer></script>
     <script src="/desk-tts.js" defer></script>
+    <script src="/desk-results.js" defer></script>
     <style>
       :root {
         --bg: #f3f4f6;
@@ -234,6 +235,89 @@
         opacity: 0.45;
         cursor: not-allowed;
       }
+      .powered-row {
+        margin-top: 0.85rem;
+        padding-top: 0.85rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .powered-label {
+        font-size: 0.72rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .tech-btns { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+      .tech-btn {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.35rem 0.65rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--text);
+        text-decoration: none;
+        background: var(--bg);
+      }
+      .tech-btn:hover { border-color: var(--primary); color: var(--primary); }
+      .verify-empty { font-size: 0.82rem; color: var(--muted); margin: 0; }
+      .verify-blocky-note {
+        font-size: 0.8rem;
+        color: var(--muted);
+        line-height: 1.5;
+        margin: 0 0 0.75rem;
+      }
+      .verify-blocky-note code { font-size: 0.78rem; color: var(--text); }
+      .verify-transfers { margin: 0 0 0.75rem; padding-left: 1rem; font-size: 0.82rem; color: var(--text); }
+      .verify-transfer { margin-bottom: 0.25rem; font-variant-numeric: tabular-nums; }
+      .wallet-title { font-size: 0.95rem; font-weight: 600; margin: 0 0 0.25rem; }
+      .wallet-phase {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        margin: 0 0 0.65rem;
+      }
+      .wallet-grid { display: grid; gap: 0.55rem; }
+      .wallet-row {
+        display: grid;
+        grid-template-columns: 7.5rem 1fr auto;
+        gap: 0.5rem 0.75rem;
+        align-items: center;
+        padding: 0.55rem 0.65rem;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--bg);
+        font-size: 0.82rem;
+      }
+      .wallet-role { color: var(--muted); font-weight: 600; }
+      .wallet-id { font-family: ui-monospace, monospace; font-size: 0.78rem; }
+      .wallet-bal-col { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; justify-content: flex-end; }
+      .wallet-bal { font-variant-numeric: tabular-nums; font-weight: 600; }
+      .wallet-delta {
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.15rem 0.45rem;
+        border-radius: 6px;
+        font-variant-numeric: tabular-nums;
+      }
+      .wallet-delta.delta-up { background: rgba(45, 125, 70, 0.12); color: var(--success); border: 1px solid rgba(45, 125, 70, 0.28); }
+      .wallet-delta.delta-down { background: rgba(180, 60, 60, 0.1); color: #b43c3c; border: 1px solid rgba(180, 60, 60, 0.25); }
+      .wallet-blocky-note {
+        font-size: 0.78rem;
+        color: var(--muted);
+        line-height: 1.45;
+        margin: 0.75rem 0 0;
+      }
+      .wallet-blocky-note code { color: var(--text); font-size: 0.76rem; }
+      .agent-title { font-size: 0.95rem; font-weight: 600; margin: 0 0 0.25rem; }
+      .agent-pattern { font-size: 0.78rem; color: var(--muted); margin: 0 0 0.55rem; }
+      .agent-steps { margin: 0; padding-left: 1rem; font-size: 0.8rem; line-height: 1.45; color: var(--muted); }
+      .agent-step { margin-bottom: 0.35rem; }
+      .agent-sponsor { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--primary); font-weight: 600; }
       .meta {
         font-size: 0.8rem;
         color: var(--muted);
@@ -364,6 +448,34 @@
       .report-actions a:hover {
         text-decoration: underline;
       }
+      .viz-title { font-size: 0.95rem; font-weight: 600; margin: 0 0 0.65rem; }
+      .viz-subtitle { font-size: 0.82rem; font-weight: 600; margin: 1rem 0 0.4rem; color: var(--muted); }
+      .viz-chart-wrap {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+      .viz-canvas { width: 100%; height: auto; display: block; }
+      .viz-legend { display: grid; gap: 0.35rem; margin-bottom: 0.5rem; }
+      .viz-legend-row {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      .viz-dot { width: 8px; height: 8px; border-radius: 999px; flex: 0 0 auto; }
+      .viz-val { margin-left: auto; color: var(--text); font-variant-numeric: tabular-nums; }
+      .viz-fail { font-size: 0.78rem; color: var(--warn); margin: 0.35rem 0 0; }
+      .viz-tx-list { margin: 0; padding-left: 1.1rem; font-size: 0.8rem; color: var(--muted); }
+      .viz-tx-list a { color: var(--primary); }
+      .verify-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55rem; }
+      .verify-list a { color: var(--primary); font-weight: 600; font-size: 0.88rem; text-decoration: none; }
+      .verify-list a:hover { text-decoration: underline; }
+      .verify-meta { display: block; font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem; font-weight: 400; }
+      li.verify-meta { list-style: none; }
       details {
         margin-top: 0.5rem;
       }
@@ -421,6 +533,11 @@
 
       <div class="card">
         <div class="meta" id="meta">Loading…</div>
+        <div class="powered-row" id="powered" hidden></div>
+      </div>
+
+      <div class="card" id="walletCard" hidden>
+        <div id="walletPanel"></div>
       </div>
 
       <div class="card" id="gateCard" hidden>
@@ -474,14 +591,19 @@
 
       <div class="card" id="resultCard" hidden>
         <div class="success-banner" id="done" hidden>Your report is ready</div>
+        <div id="vizBlock" hidden></div>
+        <div id="agentRun" hidden></div>
         <div class="report-box" id="reportText" hidden></div>
-        <div class="report-actions" id="reportActions" hidden>
-          <a id="hashscanLink" href="#" target="_blank" rel="noreferrer">View payment on HashScan</a>
-        </div>
         <details id="detailsBlock" hidden>
           <summary>Technical details</summary>
           <pre id="out">{}</pre>
         </details>
+      </div>
+
+      <div class="card" id="verifyCard" hidden>
+        <h2>On-chain proof</h2>
+        <p class="hint">HashScan links for transactions from this report.</p>
+        <div id="verifyLinks"></div>
       </div>
     </main>
     <script>
@@ -490,10 +612,15 @@
       const gateStatus = document.getElementById("gateStatus");
       const out = document.getElementById("out");
       const reportText = document.getElementById("reportText");
-      const reportActions = document.getElementById("reportActions");
-      const hashscanLink = document.getElementById("hashscanLink");
       const resultCard = document.getElementById("resultCard");
+      const walletCard = document.getElementById("walletCard");
+      const walletPanel = document.getElementById("walletPanel");
       const detailsBlock = document.getElementById("detailsBlock");
+      const vizBlock = document.getElementById("vizBlock");
+      const agentRun = document.getElementById("agentRun");
+      const verifyLinks = document.getElementById("verifyLinks");
+      const powered = document.getElementById("powered");
+      const verifyCard = document.getElementById("verifyCard");
       const buy = document.getElementById("buy");
       const done = document.getElementById("done");
       const gateCard = document.getElementById("gateCard");
@@ -508,6 +635,7 @@
       const stepPay = document.getElementById("stepPay");
 
       let config = null;
+      let balancesBefore = null;
 
       function formatPrice(hbar) {
         if (!hbar || hbar >= 0.001) return `${hbar} HBAR`;
@@ -535,16 +663,37 @@
       }
 
       async function resetHumanGate() {
-        await fetch("/api/world/logout", { method: "POST" });
-        gateDoneCard.hidden = true;
-        gateCard.hidden = false;
-        proveHuman.disabled = false;
-        gateStatus.textContent = "";
-        lockCase();
-        resetReport();
-        resultCard.hidden = true;
-        statusEl.textContent = "";
-        await loadConfig();
+        reauthorizeHuman.disabled = true;
+        if (window.WorldGateClient?.resetSession) WorldGateClient.resetSession();
+        try {
+          const logout = await fetch("/api/world/logout", {
+            method: "POST",
+            credentials: "same-origin",
+          }).then((r) => r.json());
+          if (!logout.ok) {
+            throw new Error("logout_failed");
+          }
+          if (config) config.humanVerified = false;
+          gateDoneCard.hidden = true;
+          gateCard.hidden = false;
+          proveHuman.disabled = false;
+          gateStatus.textContent = "";
+          lockCase();
+          resetReport();
+          resultCard.hidden = true;
+          statusEl.textContent = "Desk session cleared — run World selfie again on your phone.";
+          await loadConfig();
+          if (config?.humanVerified) {
+            statusEl.textContent =
+              "Could not clear desk session. Hard-refresh or use a private window, then try again.";
+            gateDoneCard.hidden = false;
+            gateCard.hidden = true;
+          }
+        } catch {
+          statusEl.textContent = "Sign-out failed. Hard-refresh the page and try again.";
+        } finally {
+          reauthorizeHuman.disabled = false;
+        }
       }
 
       function unlockCase() {
@@ -553,55 +702,97 @@
         if (config?.walletReady) buy.disabled = false;
       }
 
+      function buyErrorMessage(data) {
+        const raw =
+          data?.payload?.error ??
+          data?.payload?.message ??
+          (typeof data?.payload === "string" ? data.payload : null) ??
+          data?.error;
+        if (typeof raw === "string" && raw.includes("Facilitator") && raw.includes("timed out")) {
+          return "Blocky402 payment gateway timed out (Hedera testnet can be slow). Wait a moment and click Buy again.";
+        }
+        if (data?.error === "human_gate_required") {
+          return "Authorize with World selfie first.";
+        }
+        return "We couldn't finish the report. See details below.";
+      }
+
       function showReport(data) {
-        const payload = data.payload ?? data;
         resultCard.hidden = false;
+        const extracted = window.DeskResults
+          ? DeskResults.updateAfterBeat({
+              data,
+              paymentTxId: data.paymentTxId ?? null,
+              vizRoot: vizBlock,
+              agentRoot: agentRun,
+              verifyRoot: verifyLinks,
+              config,
+            })
+          : { beat: data?.payload?.beat ?? data?.payload ?? data, reasoning: "" };
+        const { beat, reasoning } = extracted;
         detailsBlock.hidden = false;
-        out.textContent = JSON.stringify(payload, null, 2);
+        out.textContent = JSON.stringify(beat, null, 2);
 
-        if (payload?.reasoning) {
-          reportText.textContent = payload.reasoning;
+        if (reasoning) {
+          reportText.textContent = reasoning;
           reportText.hidden = false;
-          if (window.DeskTTS) DeskTTS.speak(payload.reasoning, reportText);
+          reportText.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          if (window.DeskTTS) DeskTTS.speak(reasoning, reportText);
         }
 
-        if (data.hashscan) {
-          hashscanLink.href = data.hashscan;
-          reportActions.hidden = false;
+        refreshWalletPanel("after", balancesBefore);
+        if (!verifyCard.hidden) {
+          verifyCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
+      }
+
+      async function refreshWalletPanel(phase, beforeMap) {
+        if (!window.DeskResults || !config) return;
+        const wallets = await DeskResults.fetchBalances();
+        walletCard.hidden = false;
+        DeskResults.renderWalletPanel(walletPanel, {
+          config,
+          wallets,
+          phase,
+          before: beforeMap ?? balancesBefore ?? {},
+          facilitatorId: config.blocky402FacilitatorAccountId,
+        });
       }
 
       function resetReport() {
         if (window.DeskTTS) DeskTTS.stop();
         done.hidden = true;
+        vizBlock.hidden = true;
+        vizBlock.innerHTML = "";
+        agentRun.hidden = true;
+        agentRun.innerHTML = "";
         reportText.hidden = true;
         reportText.textContent = "";
         reportText.classList.remove("speaking");
-        reportActions.hidden = true;
         detailsBlock.hidden = true;
         out.textContent = "{}";
+        balancesBefore = null;
+        if (window.DeskResults) {
+          DeskResults.mountVerifyFooter(verifyLinks);
+          refreshWalletPanel("idle");
+        }
       }
 
       async function loadConfig() {
         config = await fetch("/api/config").then((r) => r.json());
         buy.textContent = `Get my report (${formatPrice(config.settleHbar)} on Hedera testnet)`;
 
-        const pills = [
-          '<span class="pill">Hedera testnet</span>',
-          '<span class="pill">The Graph</span>',
-        ];
-        if (config.slot3Sponsor === "world") pills.push('<span class="pill">World</span>');
+        const pills = ['<span class="pill">Hedera testnet</span>'];
         if (config.walletReady) {
           pills.push(`<span class="pill">Pays from ${config.agentAccountId}</span>`);
         } else {
           pills.push('<span class="pill">Wallet not set up</span>');
         }
-        if (config.hashscanService) {
-          pills.push(
-            `<a href="${config.hashscanService}" target="_blank" rel="noreferrer">Payment receipts</a>`,
-          );
-        }
         meta.innerHTML = pills.join("");
+        if (window.DeskResults) {
+          DeskResults.mountPoweredBy(config, powered);
+          powered.hidden = false;
+        }
 
         if (config.worldGate && !config.humanVerified) {
           gateDoneCard.hidden = true;
@@ -614,6 +805,8 @@
           unlockCase();
         }
         if (!config.walletReady) buy.disabled = true;
+        if (window.DeskResults) DeskResults.mountVerifyFooter(verifyLinks);
+        await refreshWalletPanel("idle");
       }
 
       async function markHumanVerified(demo) {
@@ -670,6 +863,17 @@
         buy.disabled = true;
         stepCase.className = "step done";
         stepPay.className = "step active";
+        if (window.DeskResults && config) {
+          const wallets = await DeskResults.fetchBalances();
+          balancesBefore = DeskResults.balanceMap(wallets);
+          walletCard.hidden = false;
+          DeskResults.renderWalletPanel(walletPanel, {
+            config,
+            wallets,
+            phase: "before",
+            before: balancesBefore,
+          });
+        }
         statusEl.textContent = "Working on your report…";
         const res = await fetch("/api/buy", {
           method: "POST",
@@ -715,7 +919,7 @@
               showReport(data);
             }
             if (ev === "error") {
-              statusEl.textContent = "We couldn't finish the report. See details below.";
+              statusEl.textContent = buyErrorMessage(data);
               resultCard.hidden = false;
               detailsBlock.hidden = false;
               out.textContent = JSON.stringify(data, null, 2);

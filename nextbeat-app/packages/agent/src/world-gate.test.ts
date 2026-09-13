@@ -3,6 +3,7 @@ import type { AgentEnv } from '@nextbeat/shared';
 import {
   clearHumanCookie,
   hasValidHumanCookie,
+  isSecureRequest,
   isWorldGateActive,
   issueHumanCookie,
 } from './world-gate.js';
@@ -19,6 +20,7 @@ const baseEnv: AgentEnv = {
   WORLD_ACTION: 'nextbeat-desk',
   WORLD_DEMO_GATE: false,
   DESK_UI: 'classic',
+  HEDERA_MIRROR_URL: 'https://testnet.mirrornode.hedera.com',
 };
 
 describe('world gate', () => {
@@ -59,16 +61,27 @@ describe('world gate', () => {
     };
     const headers: Record<string, string | string[]> = {};
     const res = {
-      setHeader(name: string, value: string) {
+      setHeader(name: string, value: string | string[]) {
         headers[name.toLowerCase()] = value;
       },
     };
-    issueHumanCookie(res as never, env);
-    const issued = String(headers['set-cookie']);
-    const req = { headers: { cookie: issued.split(';')[0] } };
+    issueHumanCookie(res as never, env, true);
+    const issued = String((headers['set-cookie'] as string[] | string));
+    const cookiePair = issued.split(';')[0];
+    const req = { headers: { cookie: cookiePair }, secure: true };
     expect(hasValidHumanCookie(req as never, env)).toBe(true);
-    clearHumanCookie(res as never);
-    const cleared = String(headers['set-cookie']);
-    expect(cleared).toContain('Max-Age=0');
+    clearHumanCookie(res as never, true);
+    const cleared = headers['set-cookie'];
+    expect(Array.isArray(cleared)).toBe(true);
+    expect(cleared).toHaveLength(2);
+    expect(cleared?.[0]).toContain('Max-Age=0');
+    expect(cleared?.[1]).toContain('Secure');
+  });
+
+  it('detects HTTPS from x-forwarded-proto', () => {
+    expect(isSecureRequest({ secure: false, headers: { 'x-forwarded-proto': 'https' } } as never)).toBe(
+      true,
+    );
+    expect(isSecureRequest({ secure: false, headers: {} } as never)).toBe(false);
   });
 });

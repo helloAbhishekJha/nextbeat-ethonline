@@ -50,18 +50,40 @@ export function hasValidHumanCookie(req: Request, env: AgentEnv): boolean {
   }
 }
 
-export function issueHumanCookie(res: Response, env: AgentEnv): void {
+function cookieBaseFlags(secure: boolean): string {
+  const flags = ['HttpOnly', 'SameSite=Lax', 'Path=/'];
+  if (secure) flags.push('Secure');
+  return flags.join('; ');
+}
+
+export function isSecureRequest(req: Request): boolean {
+  if (req.secure) return true;
+  const forwarded = req.headers['x-forwarded-proto'];
+  if (typeof forwarded === 'string') {
+    return forwarded.split(',')[0]?.trim() === 'https';
+  }
+  return false;
+}
+
+export function issueHumanCookie(res: Response, env: AgentEnv, secure = false): void {
   const exp = Date.now() + HUMAN_TTL_MS;
   const sig = createHmac('sha256', cookieSecret(env)).update(String(exp)).digest('hex');
   const value = `${exp}.${sig}`;
   res.setHeader(
     'Set-Cookie',
-    `${COOKIE_NAME}=${encodeURIComponent(value)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${Math.floor(HUMAN_TTL_MS / 1000)}`,
+    `${COOKIE_NAME}=${encodeURIComponent(value)}; ${cookieBaseFlags(secure)}; Max-Age=${Math.floor(HUMAN_TTL_MS / 1000)}`,
   );
 }
 
-export function clearHumanCookie(res: Response): void {
-  res.setHeader('Set-Cookie', `${COOKIE_NAME}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`);
+export function clearHumanCookie(res: Response, secure = false): void {
+  const expired = 'Thu, 01 Jan 1970 00:00:00 GMT';
+  const clears = [
+    `${COOKIE_NAME}=; ${cookieBaseFlags(false)}; Max-Age=0; Expires=${expired}`,
+  ];
+  if (secure) {
+    clears.push(`${COOKIE_NAME}=; ${cookieBaseFlags(true)}; Max-Age=0; Expires=${expired}`);
+  }
+  res.setHeader('Set-Cookie', clears);
 }
 
 export async function createRpSignature(env: AgentEnv) {

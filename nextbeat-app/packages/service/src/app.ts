@@ -1,6 +1,12 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { paymentMiddleware } from '@x402/express';
-import { NextBeatError, parsePositiveInt, tinybarsToHbar, type ServiceEnv } from '@nextbeat/shared';
+import {
+  NextBeatError,
+  parseGraphUrls,
+  parsePositiveInt,
+  tinybarsToHbar,
+  type ServiceEnv,
+} from '@nextbeat/shared';
 import { composeBeat, composeQuote } from './beats.js';
 import type { Logger } from './logger.js';
 import { createTestnetResourceServer } from './x402.js';
@@ -27,6 +33,7 @@ export function createApp(env: ServiceEnv, logger: Logger) {
       priceHbar: tinybarsToHbar(env.PAYCALL_PRICE_TINYBARS),
       capTinybars: env.PAYCALL_PRICE_CAP_TINYBARS.toString(),
       graphConfigured: Boolean(env.GRAPH_QUERY_URLS?.trim()),
+      graphEndpointCount: parseGraphUrls(env.GRAPH_QUERY_URLS).length,
       hcsTopic: env.HCS_TOPIC_ID ?? null,
     });
   });
@@ -73,7 +80,7 @@ export function createApp(env: ServiceEnv, logger: Logger) {
           mimeType: 'application/json',
         },
       },
-      createTestnetResourceServer(env.X402_TESTNET_FACILITATOR_URL),
+      createTestnetResourceServer(env.X402_TESTNET_FACILITATOR_URL, env.X402_FACILITATOR_TIMEOUT_MS),
     ),
   );
 

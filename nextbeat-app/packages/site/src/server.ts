@@ -11,19 +11,21 @@ config({ path: resolve(process.cwd(), '.env') });
 const serviceEnv = loadServiceEnv();
 const agentEnv = loadAgentEnv();
 
+const serviceApp = createApp(serviceEnv, createLogger(serviceEnv.LOG_LEVEL));
+const agentApp = createAgentApp(
+  agentEnv,
+  pino({
+    level: agentEnv.LOG_LEVEL,
+    redact: { paths: ['*.privateKey', '*.HEDERA_AGENT_PRIVATE_KEY'], remove: true },
+    base: { service: 'nextbeat-agent' },
+  }),
+  { serviceApp },
+);
+
 const app = express();
 app.disable('x-powered-by');
-app.use(createApp(serviceEnv, createLogger(serviceEnv.LOG_LEVEL)));
-app.use(
-  createAgentApp(
-    agentEnv,
-    pino({
-      level: agentEnv.LOG_LEVEL,
-      redact: { paths: ['*.privateKey', '*.HEDERA_AGENT_PRIVATE_KEY'], remove: true },
-      base: { service: 'nextbeat-agent' },
-    }),
-  ),
-);
+app.use(serviceApp);
+app.use(agentApp);
 
 /** Single public URL: desk UI + /health + /v1/* + /api/* */
 export default app;
