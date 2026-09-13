@@ -60,6 +60,10 @@ export function issueHumanCookie(res: Response, env: AgentEnv): void {
   );
 }
 
+export function clearHumanCookie(res: Response): void {
+  res.setHeader('Set-Cookie', `${COOKIE_NAME}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`);
+}
+
 export async function createRpSignature(env: AgentEnv) {
   if (!env.WORLD_SIGNING_KEY_HEX) {
     throw new Error('WORLD_SIGNING_KEY_HEX not configured');

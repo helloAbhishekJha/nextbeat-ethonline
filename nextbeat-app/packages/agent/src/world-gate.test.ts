@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { AgentEnv } from '@nextbeat/shared';
-import { hasValidHumanCookie, isWorldGateActive, issueHumanCookie } from './world-gate.js';
+import {
+  clearHumanCookie,
+  hasValidHumanCookie,
+  isWorldGateActive,
+  issueHumanCookie,
+} from './world-gate.js';
 
 const baseEnv: AgentEnv = {
   NODE_ENV: 'test',
@@ -45,5 +50,25 @@ describe('world gate', () => {
     const cookie = String(headers['set-cookie']);
     const req = { headers: { cookie: cookie.split(';')[0] } };
     expect(hasValidHumanCookie(req as never, env)).toBe(true);
+  });
+
+  it('clears a human cookie', () => {
+    const env = {
+      ...baseEnv,
+      WORLD_SIGNING_KEY_HEX: '0x' + '33'.repeat(32),
+    };
+    const headers: Record<string, string | string[]> = {};
+    const res = {
+      setHeader(name: string, value: string) {
+        headers[name.toLowerCase()] = value;
+      },
+    };
+    issueHumanCookie(res as never, env);
+    const issued = String(headers['set-cookie']);
+    const req = { headers: { cookie: issued.split(';')[0] } };
+    expect(hasValidHumanCookie(req as never, env)).toBe(true);
+    clearHumanCookie(res as never);
+    const cleared = String(headers['set-cookie']);
+    expect(cleared).toContain('Max-Age=0');
   });
 });

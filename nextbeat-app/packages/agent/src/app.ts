@@ -10,6 +10,7 @@ import {
   hasValidHumanCookie,
   isWorldConfigured,
   isWorldGateActive,
+  clearHumanCookie,
   issueHumanCookie,
   verifyWithWorld,
 } from './world-gate.js';
@@ -131,6 +132,15 @@ export function createAgentApp(env: AgentEnv, logger: Logger) {
     }
     issueHumanCookie(res, env);
     res.json({ ok: true, demo: true, sponsor: 'world' });
+  });
+
+  app.post('/api/world/logout', (req, res) => {
+    if (!worldGate) {
+      res.status(404).json({ error: 'world_gate_disabled' });
+      return;
+    }
+    clearHumanCookie(res);
+    res.json({ ok: true });
   });
 
   app.post('/api/buy', async (req, res) => {

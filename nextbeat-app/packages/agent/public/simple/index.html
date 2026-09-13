@@ -137,6 +137,21 @@
         align-items: center;
         justify-content: center;
       }
+      .gate-done-copy { flex: 1; min-width: 0; }
+      .gate-done-copy p { margin: 0 0 0.5rem; }
+      .gate-reauth-btn {
+        width: auto;
+        margin: 0;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .gate-reauth-btn:hover { border-color: var(--primary); color: var(--text); }
       .card {
         background: var(--surface);
         border: 1px solid var(--border);
@@ -421,10 +436,17 @@
       </div>
 
       <div class="card gate-done" id="gateDoneCard" hidden>
-        <p class="gate-done-row">
+        <div class="gate-done-row">
           <span class="gate-tick" aria-hidden="true">✓</span>
-          <span><strong>Step 1 complete</strong> — World Selfie authorized. Ask your question below.</span>
-        </p>
+          <div class="gate-done-copy">
+            <p id="gateDoneMessage">
+              <strong>Step 1 complete</strong> — World Selfie authorized. Ask your question below.
+            </p>
+            <button type="button" id="reauthorizeHuman" class="gate-reauth-btn">
+              Re-authorize World selfie (demo)
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="card locked" id="caseCard">
@@ -477,7 +499,10 @@
       const gateCard = document.getElementById("gateCard");
       const caseCard = document.getElementById("caseCard");
       const proveHuman = document.getElementById("proveHuman");
+      const reauthorizeHuman = document.getElementById("reauthorizeHuman");
       const demoBypass = document.getElementById("demoBypass");
+      const gateDoneCard = document.getElementById("gateDoneCard");
+      const gateDoneMessage = document.getElementById("gateDoneMessage");
       const stepHuman = document.getElementById("stepHuman");
       const stepCase = document.getElementById("stepCase");
       const stepPay = document.getElementById("stepPay");
@@ -496,11 +521,30 @@
       }
 
       function showHumanAuthorized(demo) {
-        document.getElementById("gateDoneCard").hidden = false;
-        document.getElementById("gateDoneCard").querySelector("span:last-child").innerHTML = demo
+        gateDoneCard.hidden = false;
+        gateDoneMessage.innerHTML = demo
           ? "<strong>Step 1 complete</strong> — local testing bypass. Ask your question below."
           : "<strong>Step 1 complete</strong> — World Selfie authorized. Ask your question below.";
         stepHuman.className = "step done";
+      }
+
+      function lockCase() {
+        caseCard.classList.add("locked");
+        buy.disabled = true;
+        setSteps(false, false);
+      }
+
+      async function resetHumanGate() {
+        await fetch("/api/world/logout", { method: "POST" });
+        gateDoneCard.hidden = true;
+        gateCard.hidden = false;
+        proveHuman.disabled = false;
+        gateStatus.textContent = "";
+        lockCase();
+        resetReport();
+        resultCard.hidden = true;
+        statusEl.textContent = "";
+        await loadConfig();
       }
 
       function unlockCase() {
@@ -560,9 +604,10 @@
         meta.innerHTML = pills.join("");
 
         if (config.worldGate && !config.humanVerified) {
+          gateDoneCard.hidden = true;
           gateCard.hidden = false;
           demoBypass.hidden = !config.worldDemoGate;
-          setSteps(false, false);
+          lockCase();
         } else {
           gateCard.hidden = true;
           if (config.humanVerified) showHumanAuthorized(false);
@@ -598,6 +643,10 @@
           gateStatus.textContent = WorldGateClient.formatWorldError(e);
           proveHuman.disabled = false;
         }
+      });
+
+      reauthorizeHuman.addEventListener("click", () => {
+        void resetHumanGate();
       });
 
       demoBypass.addEventListener("click", async () => {
