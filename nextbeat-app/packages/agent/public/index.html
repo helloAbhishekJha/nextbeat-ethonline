@@ -144,6 +144,19 @@
       .case-chip:hover { border-color: var(--accent); color: var(--text); }
       .examples-link { font-size: 0.78rem; margin-top: 0.65rem; }
       .examples-link a { color: var(--accent); }
+      .sample-answer {
+        margin-top: 0.75rem;
+        padding: 0.65rem 0.75rem;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: #0c1018;
+        font-size: 0.72rem;
+        line-height: 1.45;
+        color: var(--muted);
+        white-space: pre-wrap;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      .sample-answer-label { font-size: 0.78rem; color: var(--muted); margin: 0.65rem 0 0.35rem; }
     </style>
   </head>
   <body>
@@ -196,10 +209,13 @@
           </p>
         </div>
         <label for="accountId">Treasury account (Hedera testnet)</label>
-        <input id="accountId" value="0.0.3" autocomplete="off" spellcheck="false" />
+        <input id="accountId" value="0.0.10449882" autocomplete="off" spellcheck="false" />
         <p class="field-hint">
-          The account you are reviewing — not the agent wallet that pays for beats.
+          Our two testnet accounts: <code>0.0.10449882</code> (service treasury) or
+          <code>0.0.10456496</code> (agent payer). Pick the one your question is about.
         </p>
+        <p class="sample-answer-label" id="sampleAnswerLabel" hidden>Sample beat (live query — buy for fresh data)</p>
+        <div class="sample-answer" id="sampleAnswer" hidden></div>
         <button id="buy" type="button" disabled>Buy next beat (agent pays testnet HBAR)</button>
         <p class="status" id="status"></p>
       </div>
@@ -242,38 +258,62 @@
           label: "1 · Vendor batch",
           question:
             "Our payment agent is about to settle this week's vendor invoices from the treasury — should I approve the batch given current lending pool depth and this account's recent transfers?",
-          accountId: "0.0.3",
+          accountId: "0.0.10449882",
+          txCount: 2,
         },
         {
           label: "2 · Month-end close",
           question:
             "For month-end close, does this treasury account's transfer volume look normal relative to current Compound and Uniswap market size?",
           accountId: "0.0.10449882",
+          txCount: 2,
         },
         {
           label: "3 · Idle capital",
           question:
             "We are holding surplus HBAR in the treasury — are lending pools large enough that deploying idle balance into yield is worth evaluating now?",
-          accountId: "0.0.3",
+          accountId: "0.0.10449882",
+          txCount: 2,
         },
         {
           label: "4 · Alert triage",
           question:
             "We got an alert on unusual Hedera outflows — does today's DeFi liquidity picture point to external market stress, or should we investigate this treasury account specifically?",
-          accountId: "0.0.98",
+          accountId: "0.0.10456496",
+          txCount: 2,
         },
         {
           label: "5 · Board brief",
           question:
             "The board asked how our treasury activity relates to current DeFi market conditions — summarize Graph lending and DEX liquidity versus this account's recent Hedera transfers for a one-page brief.",
           accountId: "0.0.10456496",
+          txCount: 2,
         },
       ];
+
+      function formatSampleBeat(c) {
+        return (
+          `Case: “${c.question}”\n\n` +
+          "Market snapshot:\n" +
+          "• Compound v2: TVL ≈ $115841820.1152804509988066577686744 (The Graph)\n" +
+          "• factory:0x1F98431c8aD98523631AE4a59f267346ea31F984: TVL ≈ $2075145401042.190240673477879296609 (The Graph)\n\n" +
+          `Treasury account ${c.accountId} on Hedera testnet: ${c.txCount} recent transactions.\n\n` +
+          "Takeaway for the operator: compare overall DeFi market size (Graph) with this account’s recent activity (Hedera). " +
+          "They measure different things — use both before pausing or approving outbound transfers."
+        );
+      }
+
+      function showSampleAnswer(c) {
+        document.getElementById("sampleAnswer").textContent = formatSampleBeat(c);
+        document.getElementById("sampleAnswerLabel").hidden = false;
+        document.getElementById("sampleAnswer").hidden = false;
+      }
 
       function loadExampleCase(c) {
         document.getElementById("assignment").value = c.question;
         document.getElementById("accountId").value = c.accountId;
-        statusEl.textContent = "Loaded example case — buy beat for a live answer.";
+        showSampleAnswer(c);
+        statusEl.textContent = "Loaded example case — buy beat for a fresh live answer.";
       }
 
       function renderExampleCases() {
@@ -493,6 +533,7 @@
       });
 
       renderExampleCases();
+      showSampleAnswer(EXAMPLE_CASES[0]);
       loadConfig().catch(() => {
         meta.textContent = "Could not load config. Refresh the page.";
       });

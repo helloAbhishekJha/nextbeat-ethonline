@@ -12,31 +12,33 @@ Everything runs on **Hedera testnet only** for the hackathon demo. Default price
 
 ## Example cases (real treasury workflows)
 
-Pick any preset on the [live desk](https://nextbeat.vercel.app). Full questions + sample answers: [`docs/example-cases.md`](./docs/example-cases.md).
+Pick any preset on the [live desk](https://nextbeat.vercel.app). Full questions + **real sample beat outputs**: [`docs/example-cases.md`](./docs/example-cases.md).
 
-| # | Who asks | Goal | Treasury account (testnet) |
+**Our two testnet accounts:** `0.0.10449882` (service treasury, receives beat payments) · `0.0.10456496` (agent wallet, pays for beats).
+
+| # | Who asks | Goal | Account to review |
 |---|---|---|---|
-| 1 | AP / treasury ops | **Approve** this week's agent vendor batch | `0.0.3` |
+| 1 | AP / treasury ops | **Approve** this week's agent vendor batch | `0.0.10449882` |
 | 2 | Controller | **Month-end close** — reconcile transfers vs market context | `0.0.10449882` |
-| 3 | Treasury manager | **Deploy idle HBAR** — is yield worth evaluating? | `0.0.3` |
-| 4 | Security on-call | **Triage outflow alert** — market stress vs account issue | `0.0.98` |
+| 3 | Treasury manager | **Deploy idle HBAR** — is yield worth evaluating? | `0.0.10449882` |
+| 4 | Security on-call | **Triage outflow alert** — market stress vs account issue | `0.0.10456496` |
 | 5 | CFO / board | **Governance brief** — DeFi liquidity vs treasury activity | `0.0.10456496` |
 
-**Sample beat (case 1 — live format; TVL updates each query):**
+**Sample beat (case 1 — captured from a live query; buy a beat for fresh TVL/tx counts):**
 
 ```
 Case: “Our payment agent is about to settle this week's vendor invoices…”
 
 Market snapshot:
-• compound-v2: TVL ≈ $… (The Graph)
-• uniswap-v2: TVL ≈ $… (The Graph)
+• Compound v2: TVL ≈ $115841820.11… (The Graph)
+• factory:0x1F98431c8aD98523631AE4a59f267346ea31F984: TVL ≈ $2075145401042.19… (The Graph)
 
-Treasury account 0.0.3 on Hedera testnet: N recent transactions.
+Treasury account 0.0.10449882 on Hedera testnet: 2 recent transactions.
 
-Takeaway for the operator: …
+Takeaway for the operator: compare overall DeFi market size (Graph) with this account's recent activity (Hedera)…
 ```
 
-Each paid beat is **live** — Graph TVL and transaction counts come from Studio + mirror at request time, settled on HashScan testnet.
+Each paid beat is **live** — Graph TVL and transaction counts update at request time; agent `0.0.10456496` pays service `0.0.10449882` on HashScan testnet.
 
 ## Live demo
 
