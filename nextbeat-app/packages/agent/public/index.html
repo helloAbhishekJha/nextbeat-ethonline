@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>NextBeat — Treasury Risk Desk</title>
     <script src="https://cdn.jsdelivr.net/npm/@worldcoin/idkit-core"></script>
+    <script src="/desk-tts.js" defer></script>
     <style>
       :root {
         color-scheme: dark;
@@ -157,6 +158,27 @@
         font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       }
       .sample-answer-label { font-size: 0.78rem; color: var(--muted); margin: 0.65rem 0 0.35rem; }
+      .report.speaking { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(124, 156, 255, 0.35); }
+      .tts-chunk.tts-active { background: rgba(124, 156, 255, 0.22); border-radius: 4px; }
+      .tts-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0.5rem 0 0.75rem;
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      .tts-btn {
+        width: auto;
+        margin: 0;
+        padding: 0.35rem 0.7rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: transparent;
+        border: 1px solid var(--line);
+        color: var(--text);
+      }
     </style>
   </head>
   <body>
@@ -342,9 +364,11 @@
       }
 
       function resetResult() {
+        if (window.DeskTTS) DeskTTS.stop();
         done.hidden = true;
         report.hidden = true;
         report.textContent = "";
+        report.classList.remove("speaking");
         hashscanLine.hidden = true;
         detailsBlock.hidden = true;
         out.textContent = "{}";
@@ -357,6 +381,7 @@
         if (payload?.reasoning) {
           report.textContent = payload.reasoning;
           report.hidden = false;
+          if (window.DeskTTS) DeskTTS.speak(payload.reasoning, report);
         }
         if (data.hashscan) {
           hashscanLink.href = data.hashscan;

@@ -42,6 +42,10 @@ export function createAgentApp(env: AgentEnv, logger: Logger) {
   app.disable('x-powered-by');
   app.use(express.json({ limit: '64kb' }));
   const publicDir = resolveDeskDir(env, env.DESK_UI === 'simple' ? 'simple' : 'classic');
+  const classicPublic = resolveDeskDir(env, 'classic');
+  app.get('/desk-tts.js', (_req, res) => {
+    res.sendFile(join(classicPublic, 'desk-tts.js'));
+  });
   app.use(express.static(publicDir, { index: 'index.html', maxAge: 0 }));
   if (env.DESK_UI !== 'simple') {
     app.use(
