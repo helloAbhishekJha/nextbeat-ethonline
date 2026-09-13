@@ -141,7 +141,7 @@ Paid buys need Hedera testnet keys in the Vercel project env (agent + service ac
 
 ## Demo video
 
-[`video/nextbeat-demo.mp4`](./video/nextbeat-demo.mp4) — ~2 min, **1280×720**, spoken English narration, **no music**, 1× real time.
+[`video/nextbeat-demo.mp4`](./video/nextbeat-demo.mp4) — **~4 min** (3:59), **1920×1080**, spoken English narration, **no music**, 1× real time. World selfie → treasury case → agent run → HashScan proof.
 
 ## Submission images
 

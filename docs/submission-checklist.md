@@ -29,7 +29,7 @@ Visible in each beat JSON: `agentRun.steps` and in UI: **Treasury Risk Agent run
 | Live x402 service via Blocky402 | `POST /v1/brief` → 402 → settle | ✅ |
 | **Agent** completes real paid request | Desk `POST /api/buy` + x402 client wallet | ✅ |
 | Metered feed (extra) | `GET /v1/quote` | ✅ |
-| Demo + public repo | README + video | ⚠️ video on dashboard (you) |
+| Demo + public repo | README + [`video/nextbeat-demo.mp4`](../video/nextbeat-demo.mp4) | ✅ repo · ⚠️ upload on dashboard |
 
 ### The Graph — Best AI Use Case From Scratch ($5,000 · 1st $2,500)
 
@@ -37,7 +37,7 @@ Visible in each beat JSON: `agentRun.steps` and in UI: **Treasury Risk Agent run
 |---|---|---|
 | Live Studio subgraph data | Compound V2 + Uniswap V2 gateway URLs | ✅ |
 | AI reasoning on Graph data | gpt-4o-mini + Graph facts JSON; templates for presets | ✅ |
-| 2–4 min demo | ~4:48 on dashboard (you) | ⚠️ |
+| 2–4 min demo | `video/nextbeat-demo.mp4` (~4:00, 1080p) | ✅ |
 
 Subgraph IDs: `4TbqVA8p2DoBd5qDbPMwmDZv3CsJjWtxo8nVSqF2tA9a` (Compound), `5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV` (Uniswap V2).
 
@@ -53,7 +53,7 @@ Subgraph IDs: `4TbqVA8p2DoBd5qDbPMwmDZv3CsJjWtxo8nVSqF2tA9a` (Compound), `5zvR82
 
 | # | Task | Status |
 |---|---|---|
-| 1 | Upload demo video on dashboard (World selfie → case → agent run → HashScan) | **You** |
+| 1 | Upload demo video on ETHGlobal dashboard — `video/nextbeat-demo.mp4` | **You** |
 | 2 | ETHGlobal dashboard — sponsors: **Hedera, The Graph, World**; World fields: [`world-selfie-feedback.md` §7](./world-selfie-feedback.md#7-ethglobal-dashboard--world-prize-copypaste) | **You** |
 | 3 | Screenshots in `images/screenshot-*.png` (refreshed) | ✅ |
 | 4 | Optional: tag repo `v0.1.0-ethonline` | **You** |
