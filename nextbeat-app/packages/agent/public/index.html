@@ -129,6 +129,21 @@
         margin-left: 0.35rem;
       }
       details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; margin-top: 0.5rem; }
+      .case-picks { margin-top: 0.5rem; }
+      .case-picks-label { font-size: 0.78rem; color: var(--muted); margin: 0 0 0.45rem; }
+      .case-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+      .case-chip {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.55rem;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: #0c1018;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .case-chip:hover { border-color: var(--accent); color: var(--text); }
+      .examples-link { font-size: 0.78rem; margin-top: 0.65rem; }
+      .examples-link a { color: var(--accent); }
     </style>
   </head>
   <body>
@@ -168,6 +183,18 @@
         <h2>Step 2 — Open treasury case</h2>
         <label for="assignment">Risk question</label>
         <textarea id="assignment">Should we pause outbound HBAR from this treasury while lending and DEX markets are under stress?</textarea>
+        <div class="case-picks">
+          <p class="case-picks-label">Example cases — click to load</p>
+          <div class="case-chips" id="caseChips"></div>
+          <p class="examples-link">
+            <a
+              href="https://github.com/helloAbhishekJha/nextbeat-ethonline/blob/main/docs/example-cases.md"
+              target="_blank"
+              rel="noreferrer"
+              >Sample beat answers (GitHub)</a
+            >
+          </p>
+        </div>
         <label for="accountId">Treasury account (Hedera testnet)</label>
         <input id="accountId" value="0.0.3" autocomplete="off" spellcheck="false" />
         <p class="field-hint">
@@ -209,6 +236,58 @@
       const stepPay = document.getElementById("stepPay");
 
       let config = null;
+
+      const EXAMPLE_CASES = [
+        {
+          label: "1 · Market stress pause",
+          question:
+            "Should we pause outbound HBAR from this treasury while lending and DEX markets are under stress?",
+          accountId: "0.0.3",
+        },
+        {
+          label: "2 · Unusual outflows",
+          question:
+            "Is this treasury sending more HBAR than usual while lending pools are shrinking?",
+          accountId: "0.0.10449882",
+        },
+        {
+          label: "3 · Cap agent spend",
+          question:
+            "Before the agent pays vendors this week, is DeFi market stress high enough to cap the spend budget?",
+          accountId: "0.0.10456496",
+        },
+        {
+          label: "4 · Board risk memo",
+          question:
+            "Summarize DeFi lending and DEX liquidity versus this account's recent Hedera activity for a risk memo.",
+          accountId: "0.0.3",
+        },
+        {
+          label: "5 · TVL divergence",
+          question:
+            "Are we still comfortable with treasury outflows when Compound and Uniswap TVL diverge sharply?",
+          accountId: "0.0.98",
+        },
+      ];
+
+      function loadExampleCase(c) {
+        document.getElementById("assignment").value = c.question;
+        document.getElementById("accountId").value = c.accountId;
+        statusEl.textContent = "Loaded example case — buy beat for a live answer.";
+      }
+
+      function renderExampleCases() {
+        const wrap = document.getElementById("caseChips");
+        wrap.innerHTML = "";
+        for (const c of EXAMPLE_CASES) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "case-chip";
+          btn.textContent = c.label;
+          btn.addEventListener("click", () => loadExampleCase(c));
+          wrap.appendChild(btn);
+        }
+      }
 
       function setSteps(humanDone, caseOpen) {
         stepHuman.className = "step" + (humanDone ? " done" : " active");
@@ -413,6 +492,7 @@
         buy.disabled = !config?.walletReady;
       });
 
+      renderExampleCases();
       loadConfig().catch(() => {
         meta.textContent = "Could not load config. Refresh the page.";
       });

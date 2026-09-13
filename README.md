@@ -8,9 +8,35 @@ ETHOnline 2026 · **Hedera** · **The Graph** · **World** (slot 3 pilot — swa
 
 A **finance operator** authorizes the session with **World Selfie Check** (bots must not trigger agent spend). The **agent wallet** then pays for each **risk beat** over **x402** (Blocky402). Each beat fuses live DeFi market data from **The Graph** (Compound + Uniswap) with recent activity on a **Hedera treasury account** you specify.
 
-**Example case:** *Should we pause outbound HBAR from this treasury while lending and DEX markets are under stress?*
-
 Everything runs on **Hedera testnet only** for the hackathon demo. Default price is **1,000 tinybars** (0.00001 HBAR) per beat.
+
+## Example cases (what operators ask)
+
+Pick any preset on the [live desk](https://nextbeat.vercel.app) or use these in your demo. Full sample beats: [`docs/example-cases.md`](./docs/example-cases.md).
+
+| # | Risk question | Treasury account (testnet) |
+|---|---|---|
+| 1 | Should we **pause outbound HBAR** while lending and DEX markets are under stress? | `0.0.3` |
+| 2 | Is this treasury **sending more than usual** while lending pools are shrinking? | `0.0.10449882` |
+| 3 | Before the agent **pays vendors this week**, is DeFi stress high enough to **cap the spend budget**? | `0.0.10456496` |
+| 4 | **Summarize DeFi liquidity vs this account’s activity** for a board risk memo. | `0.0.3` |
+| 5 | Are we comfortable with **outflows when Compound and Uniswap TVL diverge**? | `0.0.98` |
+
+**Sample beat (case 1 — live format; TVL updates each query):**
+
+```
+Case: “Should we pause outbound HBAR from this treasury while lending and DEX markets are under stress?”
+
+Market snapshot:
+• compound-v2: TVL ≈ $… (The Graph)
+• uniswap-v2: TVL ≈ $… (The Graph)
+
+Treasury account 0.0.3 on Hedera testnet: N recent transactions.
+
+Takeaway for the operator: compare overall DeFi market size (Graph) with this account’s recent activity (Hedera)…
+```
+
+Each paid beat is **live** — Graph TVL and transaction counts come from Studio + mirror at request time, settled on HashScan testnet.
 
 ## Live demo
 
