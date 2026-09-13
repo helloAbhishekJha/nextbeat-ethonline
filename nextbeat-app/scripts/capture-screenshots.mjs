@@ -17,15 +17,54 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 await page.goto(baseUrl, { waitUntil: 'networkidle' });
 await page.waitForFunction(() => window.DeskResults != null);
 await page.waitForTimeout(1000);
+
+// 01 — World Selfie gate (Step 1), case locked
+await page.evaluate(() => {
+  const gateCard = document.getElementById('gateCard');
+  const gateDoneCard = document.getElementById('gateDoneCard');
+  const caseCard = document.getElementById('caseCard');
+  const walletCard = document.getElementById('walletCard');
+  const stepHuman = document.getElementById('stepHuman');
+  const stepCase = document.getElementById('stepCase');
+  const stepPay = document.getElementById('stepPay');
+  if (gateCard) gateCard.hidden = false;
+  if (gateDoneCard) gateDoneCard.hidden = true;
+  if (caseCard) caseCard.classList.add('locked');
+  if (walletCard) walletCard.hidden = true;
+  if (stepHuman) stepHuman.className = 'step active';
+  if (stepCase) stepCase.className = 'step';
+  if (stepPay) stepPay.className = 'step';
+});
+await page.locator('#gateCard').scrollIntoViewIfNeeded();
+await page.waitForTimeout(400);
 await page.screenshot({ path: join(outDir, 'screenshot-01-desk.png'), fullPage: false });
 
+// 02 — Step 1 done + treasury case filled (Step 2)
+await page.evaluate(() => {
+  const gateCard = document.getElementById('gateCard');
+  const gateDoneCard = document.getElementById('gateDoneCard');
+  const caseCard = document.getElementById('caseCard');
+  const walletCard = document.getElementById('walletCard');
+  const buy = document.getElementById('buy');
+  const stepHuman = document.getElementById('stepHuman');
+  const stepCase = document.getElementById('stepCase');
+  const stepPay = document.getElementById('stepPay');
+  if (gateCard) gateCard.hidden = true;
+  if (gateDoneCard) gateDoneCard.hidden = false;
+  if (caseCard) caseCard.classList.remove('locked');
+  if (walletCard) walletCard.hidden = false;
+  if (buy) buy.disabled = false;
+  if (stepHuman) stepHuman.className = 'step done';
+  if (stepCase) stepCase.className = 'step active';
+  if (stepPay) stepPay.className = 'step';
+});
+await page.locator('#assignment').fill(vendorQuestion);
 await page.getByRole('button', { name: /Vendor batch/i }).click({ force: true });
+await page.locator('#caseCard').scrollIntoViewIfNeeded();
 await page.waitForTimeout(500);
-await page.locator('#stepCase').scrollIntoViewIfNeeded();
-await page.waitForTimeout(300);
 await page.screenshot({ path: join(outDir, 'screenshot-02-assignment.png'), fullPage: false });
 
-// Inject a settled beat for screenshot-03 (no live payment needed for dashboard image).
+// 03 — settled beat (agent run + reasoning + HashScan proof)
 await page.evaluate((question) => {
   const beat = {
     case: question,
@@ -72,13 +111,15 @@ await page.evaluate((question) => {
   const agentRun = document.getElementById('agentRun');
   const detailsBlock = document.getElementById('detailsBlock');
   const out = document.getElementById('out');
+  const done = document.getElementById('done');
+  const stepPay = document.getElementById('stepPay');
   const config = window.__nextbeatConfig ?? {
     agentAccountId: '0.0.10456496',
     serviceAccountId: '0.0.10449882',
     blocky402FacilitatorAccountId: '0.0.7162784',
   };
   if (window.DeskResults) {
-    const { beat, reasoning } = window.DeskResults.updateAfterBeat({
+    window.DeskResults.updateAfterBeat({
       data,
       paymentTxId: data.paymentTxId,
       vizRoot: vizBlock,
@@ -86,21 +127,30 @@ await page.evaluate((question) => {
       verifyRoot: verifyLinks,
       config,
     });
+    const { beat: b, reasoning } = window.DeskResults.extractBeat(data);
     if (report) {
-      report.textContent = reasoning;
+      report.textContent = reasoning || beat.reasoning;
       report.hidden = false;
     }
-    if (out) out.textContent = JSON.stringify(beat, null, 2);
+    if (out) out.textContent = JSON.stringify(b, null, 2);
     if (detailsBlock) detailsBlock.hidden = false;
+    if (done) done.hidden = false;
     const verifyCard = document.getElementById('verifyCard');
     if (verifyCard) verifyCard.hidden = false;
+    if (stepPay) stepPay.className = 'step done';
   }
 }, vendorQuestion);
 
 await page.waitForTimeout(800);
-await page.locator('#report').scrollIntoViewIfNeeded();
+await page.locator('#agentRun').scrollIntoViewIfNeeded();
 await page.waitForTimeout(400);
 await page.screenshot({ path: join(outDir, 'screenshot-03-beat.png'), fullPage: false });
 
 await browser.close();
+
+const { statSync } = await import('node:fs');
+for (const name of ['screenshot-01-desk.png', 'screenshot-02-assignment.png', 'screenshot-03-beat.png']) {
+  const bytes = statSync(join(outDir, name)).size;
+  console.log(`${name}: ${bytes} bytes`);
+}
 console.log('Wrote screenshots to', outDir);
