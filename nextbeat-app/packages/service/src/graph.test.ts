@@ -4,7 +4,7 @@ import { reasonAboutBeats } from './graph.js';
 describe('reasonAboutBeats', () => {
   it('explains missing Graph config', () => {
     const text = reasonAboutBeats('risk', [], 2, '0.0.3');
-    expect(text).toContain('GRAPH_QUERY_URLS');
+    expect(text).toContain('The Graph');
     expect(text).toContain('0.0.3');
   });
 
@@ -15,6 +15,6 @@ describe('reasonAboutBeats', () => {
     ], 4, '0.0.98');
     expect(text).toContain('Aave');
     expect(text).toContain('Compound');
-    expect(text).toContain('2 protocol');
+    expect(text).toContain('Market snapshot');
   });
 });

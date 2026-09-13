@@ -1,6 +1,8 @@
 # NextBeat app
 
-Implementation lives in this folder. **Start at the repo root [README](../README.md)** for what NextBeat is, the flow diagram, and how to run.
+Treasury risk desk for agentic payments — **authorize (World) → open case → agent buys beat (Hedera x402 + The Graph)**.
+
+Full story, architecture, and run instructions: **[repo root README](../README.md)**.
 
 ```bash
 cp .env.example .env   # two ECDSA testnet accounts from portal.hedera.com
@@ -10,10 +12,14 @@ npm run typecheck
 npm run dev
 ```
 
-- Service: http://127.0.0.1:4021/health  
-- Desk: http://127.0.0.1:3001  
-- Smoke (expects HTTP 402): `npm run smoke`
+| What | URL |
+|---|---|
+| Desk (local) | http://127.0.0.1:3001 |
+| Service health | http://127.0.0.1:4021/health |
+| Live demo | https://nextbeat.vercel.app |
 
-**Slot 3:** `SLOT_3_SPONSOR=world` + World portal keys, or `WORLD_DEMO_GATE=true` for local bypass. Change sponsor via env if the gate doesn't work in sandbox.
+Smoke (expects HTTP 402): `npm run smoke`
+
+**Env:** `SLOT_3_SPONSOR=world` + World portal keys; `WORLD_DEMO_GATE=true` only for local bypass. `GRAPH_QUERY_URLS` + `GRAPH_API_KEY` for live Graph beats.
 
 Git protocol: [GIT.md](./GIT.md).

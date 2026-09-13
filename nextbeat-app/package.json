@@ -2,7 +2,7 @@
   "name": "nextbeat",
   "private": true,
   "type": "module",
-  "description": "NextBeat (PayCall) — metered x402 investigation beats on Hedera testnet",
+  "description": "NextBeat — treasury risk desk: World authorize, agent pays metered x402 beats (Hedera testnet + The Graph)",
   "engines": {
     "node": "22.x"
   },

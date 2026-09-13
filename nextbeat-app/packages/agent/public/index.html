@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>NextBeat — onchain investigation desk</title>
+    <title>NextBeat — Treasury Risk Desk</title>
     <script src="https://cdn.jsdelivr.net/npm/@worldcoin/idkit-core"></script>
     <style>
       :root {
@@ -67,6 +67,7 @@
       }
       .card.locked { opacity: 0.55; pointer-events: none; }
       label { display: block; font-size: 0.78rem; color: var(--muted); margin: 0.7rem 0 0.35rem; }
+      .field-hint { font-size: 0.78rem; color: var(--muted); margin: 0.25rem 0 0; line-height: 1.45; }
       input, textarea {
         width: 100%;
         border: 1px solid var(--line);
@@ -98,6 +99,16 @@
       .meta a { color: var(--accent); }
       .status { font-family: ui-monospace, monospace; font-size: 0.82rem; min-height: 1.3em; margin: 0.75rem 0 0; }
       .hint { font-size: 0.85rem; color: var(--muted); line-height: 1.5; margin: 0; }
+      .report {
+        background: #0c1018;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.9rem 1rem;
+        font-size: 0.9rem;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        margin-bottom: 0.75rem;
+      }
       pre {
         margin: 0;
         overflow: auto;
@@ -117,6 +128,7 @@
         color: var(--muted);
         margin-left: 0.35rem;
       }
+      details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; margin-top: 0.5rem; }
     </style>
   </head>
   <body>
@@ -126,45 +138,55 @@
         <div>
           <h1>NextBeat</h1>
           <p class="lead">
-            A gamified wire desk for onchain due diligence. Prove you're human, open a case,
-            then pay <strong>dust testnet HBAR</strong> (x402) to unlock the next clue —
-            live Graph data fused with Hedera state. No mainnet. No music in the demo.
+            Treasury risk desk for agentic payments on Hedera testnet. A <strong>finance operator</strong>
+            authorizes the session (World). The <strong>agent wallet</strong> pays each risk beat over x402.
+            Each beat fuses live DeFi data from <strong>The Graph</strong> with treasury activity on
+            <strong>Hedera</strong>.
           </p>
         </div>
       </header>
 
       <div class="steps">
-        <div class="step" id="stepHuman">1 · Prove human</div>
+        <div class="step" id="stepHuman">1 · Authorize</div>
         <div class="step" id="stepCase">2 · Open case</div>
-        <div class="step" id="stepPay">3 · Buy clue</div>
+        <div class="step" id="stepPay">3 · Buy beat</div>
       </div>
 
       <div class="card"><div class="meta" id="meta">Loading…</div></div>
 
       <div class="card" id="gateCard" hidden>
-        <h2>Step 1 — Prove you're human <span class="badge">World Selfie Check</span></h2>
+        <h2>Step 1 — Authorize session <span class="badge">World Selfie Check</span></h2>
         <p class="hint">
-          Bots shouldn't burn your agent's HBAR budget. One quick selfie unlocks the desk for an hour.
-          Swap <code>SLOT_3_SPONSOR</code> to ENS or Bazantic if World doesn't ship.
+          Treasury operators only. One selfie stops bots from triggering agent spend on this desk.
         </p>
-        <button id="proveHuman" type="button">Scan Selfie Check</button>
-        <button id="demoBypass" class="secondary" type="button" hidden>Dev bypass (demo gate)</button>
+        <button id="proveHuman" type="button">Authorize with World selfie</button>
+        <button id="demoBypass" class="secondary" type="button" hidden>Skip (local testing only)</button>
         <p class="status" id="gateStatus"></p>
       </div>
 
       <div class="card locked" id="caseCard">
-        <h2>Step 2 — Your case</h2>
-        <label for="assignment">What are we investigating?</label>
-        <textarea id="assignment">Is this Hedera treasury over-exposed relative to live lending/DEX TVL?</textarea>
-        <label for="accountId">Hedera testnet account under review</label>
+        <h2>Step 2 — Open treasury case</h2>
+        <label for="assignment">Risk question</label>
+        <textarea id="assignment">Should we pause outbound HBAR from this treasury while lending and DEX markets are under stress?</textarea>
+        <label for="accountId">Treasury account (Hedera testnet)</label>
         <input id="accountId" value="0.0.3" autocomplete="off" spellcheck="false" />
-        <button id="buy" type="button" disabled>Buy next clue (dust HBAR)</button>
+        <p class="field-hint">
+          The account you are reviewing — not the agent wallet that pays for beats.
+        </p>
+        <button id="buy" type="button" disabled>Buy next beat (agent pays testnet HBAR)</button>
         <p class="status" id="status"></p>
       </div>
 
       <div class="card">
-        <div class="ok" id="done" hidden>Clue settled on hedera:testnet</div>
-        <pre id="out">{}</pre>
+        <div class="ok" id="done" hidden>Beat delivered — payment settled on Hedera testnet</div>
+        <div class="report" id="report" hidden></div>
+        <p class="hint" id="hashscanLine" hidden>
+          <a id="hashscanLink" href="#" target="_blank" rel="noreferrer">View payment on HashScan</a>
+        </p>
+        <details id="detailsBlock" hidden>
+          <summary>Technical details (JSON)</summary>
+          <pre id="out">{}</pre>
+        </details>
       </div>
     </main>
     <script>
@@ -172,6 +194,10 @@
       const statusEl = document.getElementById("status");
       const gateStatus = document.getElementById("gateStatus");
       const out = document.getElementById("out");
+      const report = document.getElementById("report");
+      const hashscanLine = document.getElementById("hashscanLine");
+      const hashscanLink = document.getElementById("hashscanLink");
+      const detailsBlock = document.getElementById("detailsBlock");
       const buy = document.getElementById("buy");
       const done = document.getElementById("done");
       const gateCard = document.getElementById("gateCard");
@@ -196,28 +222,44 @@
         if (config?.walletReady) buy.disabled = false;
       }
 
+      function resetResult() {
+        done.hidden = true;
+        report.hidden = true;
+        report.textContent = "";
+        hashscanLine.hidden = true;
+        detailsBlock.hidden = true;
+        out.textContent = "{}";
+      }
+
+      function showResult(data) {
+        const payload = data.payload ?? data;
+        detailsBlock.hidden = false;
+        out.textContent = JSON.stringify(payload, null, 2);
+        if (payload?.reasoning) {
+          report.textContent = payload.reasoning;
+          report.hidden = false;
+        }
+        if (data.hashscan) {
+          hashscanLink.href = data.hashscan;
+          hashscanLine.hidden = false;
+        }
+      }
+
       async function loadConfig() {
         config = await fetch("/api/config").then((r) => r.json());
-        buy.textContent = `Buy next clue (${config.settleHbar} testnet HBAR)`;
-        const slot3 =
-          config.slot3Sponsor === "world"
-            ? "slot 3: World"
-            : config.slot3Sponsor === "ens"
-              ? "slot 3: ENS"
-              : config.slot3Sponsor === "bazantic"
-                ? "slot 3: Bazantic"
-                : "slot 3: off";
+        buy.textContent = `Buy next beat (agent pays ${config.settleHbar} testnet HBAR)`;
         meta.innerHTML = [
-          "<span>hedera:testnet</span>",
-          `<span>clue ${config.settleTinybars} tinybars</span>`,
-          `<span>agent ${config.agentAccountId ?? "unset"}</span>`,
-          `<span>${slot3}</span>`,
+          "<span>Hedera testnet</span>",
+          "<span>The Graph</span>",
+          config.slot3Sponsor === "world" ? "<span>World</span>" : "",
+          config.agentAccountId ? `<span>Agent ${config.agentAccountId}</span>` : "",
           config.hashscanService
-            ? `<a href="${config.hashscanService}" target="_blank" rel="noreferrer">HashScan payTo</a>`
-            : "<span>payTo unset</span>",
-          `<span>${config.walletReady ? "wallet ready" : "add keys to .env"}</span>`,
-        ].join("");
-
+            ? `<a href="${config.hashscanService}" target="_blank" rel="noreferrer">HashScan receipts</a>`
+            : "",
+          config.walletReady ? "<span>Agent wallet ready</span>" : "<span>Agent wallet not configured</span>",
+        ]
+          .filter(Boolean)
+          .join("");
         if (config.worldGate && !config.humanVerified) {
           gateCard.hidden = false;
           demoBypass.hidden = !config.worldDemoGate;
@@ -231,7 +273,9 @@
       }
 
       async function markHumanVerified(demo) {
-        gateStatus.textContent = demo ? "Demo gate cleared (dev only)." : "Human verified — case unlocked.";
+        gateStatus.textContent = demo
+          ? "Skipped for local testing — you can open a case."
+          : "Authorized — you can open a treasury case.";
         gateCard.hidden = true;
         unlockCase();
         await loadConfig();
@@ -239,15 +283,17 @@
 
       proveHuman.addEventListener("click", async () => {
         if (!window.IDKit) {
-          gateStatus.textContent = "IDKit failed to load from CDN.";
+          gateStatus.textContent = "World sign-in did not load. Refresh and try again.";
           return;
         }
         proveHuman.disabled = true;
-        gateStatus.textContent = "Fetching sign-in challenge…";
+        gateStatus.textContent = "Connecting to World…";
         try {
           const sig = await fetch("/api/world/sign").then((r) => r.json());
           if (sig.error) {
-            gateStatus.textContent = sig.error + (sig.demoGate ? " — use dev bypass or set World keys." : "");
+            gateStatus.textContent = sig.demoGate
+              ? "World not configured — use skip for local testing."
+              : "Could not start World selfie. Try again.";
             proveHuman.disabled = false;
             return;
           }
@@ -266,9 +312,9 @@
 
           if (request.connectorURI) {
             gateStatus.innerHTML =
-              'Scan with World App: <a href="' +
+              'Open World App: <a href="' +
               request.connectorURI +
-              '" target="_blank" rel="noreferrer">open link</a> (waiting…)';
+              '" target="_blank" rel="noreferrer">tap here</a> (waiting…)';
           }
 
           const completion = await request.pollUntilCompletion({
@@ -276,7 +322,7 @@
             timeout: 120000,
           });
           if (!completion.success) {
-            gateStatus.textContent = "Selfie check failed: " + (completion.error ?? "unknown");
+            gateStatus.textContent = "Selfie check did not complete. Try again.";
             proveHuman.disabled = false;
             return;
           }
@@ -288,13 +334,13 @@
           }).then((r) => r.json());
 
           if (!verified.ok) {
-            gateStatus.textContent = "Server rejected proof — try demo bypass or swap slot 3 sponsor.";
+            gateStatus.textContent = "Could not verify selfie. Try again.";
             proveHuman.disabled = false;
             return;
           }
           await markHumanVerified(false);
         } catch (e) {
-          gateStatus.textContent = String(e);
+          gateStatus.textContent = "Something went wrong. Try again.";
           proveHuman.disabled = false;
         }
       });
@@ -303,7 +349,7 @@
         demoBypass.disabled = true;
         const res = await fetch("/api/world/demo-verify", { method: "POST" }).then((r) => r.json());
         if (!res.ok) {
-          gateStatus.textContent = res.error ?? "demo bypass failed";
+          gateStatus.textContent = "Skip is not available.";
           demoBypass.disabled = false;
           return;
         }
@@ -311,11 +357,10 @@
       });
 
       buy.addEventListener("click", async () => {
-        done.hidden = true;
-        out.textContent = "{}";
+        resetResult();
         buy.disabled = true;
         stepPay.className = "step active";
-        statusEl.textContent = "Starting clue purchase…";
+        statusEl.textContent = "Agent buying next risk beat…";
         const res = await fetch("/api/buy", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -327,8 +372,13 @@
         });
         if (res.headers.get("content-type")?.includes("application/json")) {
           const data = await res.json();
+          detailsBlock.hidden = false;
           out.textContent = JSON.stringify(data, null, 2);
-          statusEl.textContent = data.message ?? data.error ?? "Stopped";
+          statusEl.textContent =
+            data.message ??
+            (data.error === "human_gate_required"
+              ? "Authorize with World selfie first."
+              : data.error ?? "Stopped");
           buy.disabled = !config?.walletReady;
           return;
         }
@@ -350,11 +400,12 @@
             if (ev === "done") {
               done.hidden = false;
               stepPay.className = "step done";
-              statusEl.textContent = "Clue delivered";
-              out.textContent = JSON.stringify(data, null, 2);
+              statusEl.textContent = "";
+              showResult(data);
             }
             if (ev === "error") {
-              statusEl.textContent = data.error;
+              statusEl.textContent = "Beat failed — see details below.";
+              detailsBlock.hidden = false;
               out.textContent = JSON.stringify(data, null, 2);
             }
           }
@@ -362,8 +413,8 @@
         buy.disabled = !config?.walletReady;
       });
 
-      loadConfig().catch((e) => {
-        meta.textContent = String(e);
+      loadConfig().catch(() => {
+        meta.textContent = "Could not load config. Refresh the page.";
       });
     </script>
   </body>

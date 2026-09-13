@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
@@ -14,22 +15,40 @@ import {
 } from './world-gate.js';
 
 const LABELS: Record<PaymentStage, string> = {
-  connecting: 'Opening the dossier…',
-  payment_required: 'Clue locked — signing dust testnet HBAR…',
-  sending: 'Settling clue on hedera:testnet…',
-  accepted: 'Clue unlocked',
+  connecting: 'Preparing treasury risk beat…',
+  payment_required: 'Agent signing testnet HBAR payment…',
+  sending: 'Settling on Hedera testnet…',
+  accepted: 'Beat ready',
 };
 
 function sse(res: express.Response, event: string, data: unknown) {
   res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 }
 
+function resolveDeskDir(env: AgentEnv, variant: 'classic' | 'simple'): string {
+  const tail = variant === 'simple' ? ['packages', 'agent', 'public', 'simple'] : ['packages', 'agent', 'public'];
+  const candidates = [
+    join(process.cwd(), ...tail),
+    join(workspaceRoot(), ...tail),
+  ];
+  for (const dir of candidates) {
+    if (existsSync(join(dir, 'index.html'))) return dir;
+  }
+  return join(process.cwd(), ...tail);
+}
+
 export function createAgentApp(env: AgentEnv, logger: Logger) {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json({ limit: '64kb' }));
-  const publicDir = join(process.cwd(), 'packages/agent/public');
+  const publicDir = resolveDeskDir(env, env.DESK_UI === 'simple' ? 'simple' : 'classic');
   app.use(express.static(publicDir, { index: 'index.html', maxAge: 0 }));
+  if (env.DESK_UI !== 'simple') {
+    app.use(
+      '/simple',
+      express.static(resolveDeskDir(env, 'simple'), { index: 'index.html', maxAge: 0 }),
+    );
+  }
 
   let spent = 0n;
   const payerReady = Boolean(env.HEDERA_AGENT_ACCOUNT_ID && env.HEDERA_AGENT_PRIVATE_KEY);
@@ -111,7 +130,7 @@ export function createAgentApp(env: AgentEnv, logger: Logger) {
     if (worldGate && !hasValidHumanCookie(req, env)) {
       res.status(403).json({
         error: 'human_gate_required',
-        message: 'Pass World Selfie Check before buying a clue.',
+        message: 'Complete World Selfie Check before the agent can buy a beat.',
         slot3Sponsor: env.SLOT_3_SPONSOR,
       });
       return;
@@ -173,5 +192,13 @@ export function createAgentApp(env: AgentEnv, logger: Logger) {
 }
 
 export function workspaceRoot(): string {
-  return resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+  try {
+    const url = import.meta.url;
+    if (typeof url === 'string' && url.startsWith('file:')) {
+      return resolve(dirname(fileURLToPath(url)), '../../..');
+    }
+  } catch {
+    // esbuild CJS bundle — skip file URL resolution
+  }
+  return process.cwd();
 }

@@ -69,7 +69,7 @@ export function createApp(env: ServiceEnv, logger: Logger) {
               payTo: env.HEDERA_SERVICE_ACCOUNT_ID,
             },
           ],
-          description: 'NextBeat — next investigation paragraph (Hedera testnet HBAR)',
+          description: 'NextBeat — treasury risk beat (Hedera testnet HBAR via x402)',
           mimeType: 'application/json',
         },
       },

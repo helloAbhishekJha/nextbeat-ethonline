@@ -116,11 +116,11 @@ export function reasonAboutBeats(
 ): string {
   const live = graph.filter((g) => g.ok);
   if (live.length === 0) {
-    return `Beat 1 skipped: no live Graph endpoints. Hedera beat still covers ${accountId} (${txCount} recent txs). Configure GRAPH_QUERY_URLS for The Graph prize. Assignment: ${assignment}`;
+    return `Case: “${assignment}”\n\nLive market data (The Graph) is unavailable. Treasury account ${accountId} on Hedera testnet: ${txCount} recent transactions in this check.`;
   }
   const lines = live.map((g) => {
     const tvl = g.tvlUsd ?? 'n/a';
-    return `${g.protocolName ?? 'protocol'} TVL_USD=${tvl}`;
+    return `• ${g.protocolName ?? 'Protocol'}: TVL ≈ $${tvl} (The Graph)`;
   });
-  return `Assignment “${assignment}”: standardized snapshot across ${live.length} protocol subgraph(s): ${lines.join('; ')}. Hedera account ${accountId} shows ${txCount} recent testnet txs in this beat. Compare protocol TVL/activity (Graph) with this account’s settlement trail (Hedera) — do not treat either feed as the other chain.`;
+  return `Case: “${assignment}”\n\nMarket snapshot:\n${lines.join('\n')}\n\nTreasury account ${accountId} on Hedera testnet: ${txCount} recent transactions.\n\nTakeaway for the operator: compare overall DeFi market size (Graph) with this account’s recent activity (Hedera). They measure different things — use both before pausing or approving outbound transfers.`;
 }

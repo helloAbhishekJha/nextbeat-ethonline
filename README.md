@@ -4,9 +4,13 @@
 
 ETHOnline 2026 · **Hedera** · **The Graph** · **World** (slot 3 pilot — swap to ENS/Bazantic if needed)
 
-NextBeat is a small wire desk for onchain research. You pick an assignment (for example treasury vs lending). The service pulls live protocol data from The Graph, checks Hedera testnet state, and returns the **next beat** of the investigation. That brief is paid with a tiny amount of testnet HBAR using **x402** (Blocky402 facilitator).
+**NextBeat is a treasury risk desk for agentic payments on Hedera testnet.**
 
-Everything runs on **Hedera testnet only**. Default price is **1,000 tinybars** (0.00001 HBAR).
+A **finance operator** authorizes the session with **World Selfie Check** (bots must not trigger agent spend). The **agent wallet** then pays for each **risk beat** over **x402** (Blocky402). Each beat fuses live DeFi market data from **The Graph** (Compound + Uniswap) with recent activity on a **Hedera treasury account** you specify.
+
+**Example case:** *Should we pause outbound HBAR from this treasury while lending and DEX markets are under stress?*
+
+Everything runs on **Hedera testnet only** for the hackathon demo. Default price is **1,000 tinybars** (0.00001 HBAR) per beat.
 
 ## Live demo
 
@@ -45,13 +49,19 @@ flowchart LR
   B -->|optional receipt| F[HCS topic]
 ```
 
-1. Open the desk and choose an assignment.  
-2. Call **quote** (free) to see the metered price.  
-3. Call **brief** — the service answers `402 Payment Required`.  
-4. The agent pays dust HBAR through Blocky402 on testnet.  
-5. After settle, you get the next investigation beat (Graph + Hedera fused). Optional: a short receipt on an HCS topic.
+1. **Authorize** — treasury operator passes World Selfie Check.  
+2. **Open case** — risk question + Hedera treasury account under review.  
+3. **Quote** (free) — `GET /v1/quote` shows the metered price for this depth.  
+4. **Buy beat** — `POST /v1/brief` returns `402 Payment Required`; the **agent wallet** pays dust HBAR via Blocky402.  
+5. **Read beat** — reasoning text compares Graph market snapshot with treasury activity; verify payment on [HashScan testnet](https://hashscan.io/testnet). Optional: HCS receipt hash.
 
-**Slot 3:** World Selfie Check gates the desk before x402 spend. World feedback: [`docs/world-selfie-feedback.md`](./docs/world-selfie-feedback.md). Prize alignment: [`plan.md`](./plan.md#sponsor-prize-alignment-ethonline-2026).
+| Role | Who |
+|---|---|
+| Treasury operator | Human — World selfie authorizes the desk |
+| Agent wallet | Backend — pays each beat automatically (x402) |
+| Treasury account | The `accountId` in the case — what you are reviewing, not who pays |
+
+World feedback: [`docs/world-selfie-feedback.md`](./docs/world-selfie-feedback.md). Checklist: [`docs/submission-checklist.md`](./docs/submission-checklist.md).
 
 ## Repo layout
 

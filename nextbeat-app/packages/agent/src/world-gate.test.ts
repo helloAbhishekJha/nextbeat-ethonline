@@ -13,6 +13,7 @@ const baseEnv: AgentEnv = {
   SLOT_3_SPONSOR: 'world',
   WORLD_ACTION: 'nextbeat-desk',
   WORLD_DEMO_GATE: false,
+  DESK_UI: 'classic',
 };
 
 describe('world gate', () => {

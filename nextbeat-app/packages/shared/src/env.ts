@@ -54,6 +54,8 @@ export const agentEnvSchema = z.object({
   WORLD_ACTION: z.string().default('nextbeat-desk'),
   WORLD_SIGNING_KEY_HEX: z.string().optional(),
   WORLD_DEMO_GATE: boolFromEnv,
+  /** classic = submission desk UI; simple = plain-language beta UI */
+  DESK_UI: z.enum(['classic', 'simple']).default('classic'),
 });
 
 export type ServiceEnv = z.infer<typeof serviceEnvSchema>;
