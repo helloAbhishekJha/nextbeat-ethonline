@@ -180,6 +180,35 @@
         border: 1px solid var(--line);
         color: var(--text);
       }
+      .world-connect { font-size: 0.85rem; line-height: 1.5; color: var(--muted); }
+      .world-connect p { margin: 0 0 0.5rem; }
+      .world-link-row { display: flex; gap: 0.45rem; margin: 0.5rem 0; }
+      .world-link-input {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.72rem;
+        padding: 0.45rem 0.55rem;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: #0c1018;
+        color: var(--text);
+      }
+      .world-copy-btn,
+      .world-recheck-btn {
+        width: auto;
+        margin: 0;
+        padding: 0.45rem 0.7rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: transparent;
+        border: 1px solid var(--line);
+        color: var(--text);
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .world-recheck-btn { margin-top: 0.35rem; border-color: var(--accent); color: var(--accent); }
+      .world-hint { font-size: 0.78rem; }
+      .world-wait-timeout { color: var(--warn); }
     </style>
   </head>
   <body>
@@ -434,11 +463,14 @@
         }
         proveHuman.disabled = true;
         try {
-          await WorldGateClient.startWorldSelfie({
+          const outcome = await WorldGateClient.startWorldSelfie({
             config,
             statusEl: gateStatus,
             onVerified: () => markHumanVerified(false),
           });
+          if (outcome?.status === "pending") {
+            proveHuman.disabled = false;
+          }
         } catch (e) {
           gateStatus.textContent = WorldGateClient.formatWorldError(e);
           proveHuman.disabled = false;
