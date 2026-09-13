@@ -182,9 +182,9 @@
       <div class="card locked" id="caseCard">
         <h2>Step 2 — Open treasury case</h2>
         <label for="assignment">Risk question</label>
-        <textarea id="assignment">Should we pause outbound HBAR from this treasury while lending and DEX markets are under stress?</textarea>
+        <textarea id="assignment">Our payment agent is about to settle this week's vendor invoices from the treasury — should I approve the batch given current lending pool depth and this account's recent transfers?</textarea>
         <div class="case-picks">
-          <p class="case-picks-label">Example cases — click to load</p>
+          <p class="case-picks-label">Real-world cases — click to load</p>
           <div class="case-chips" id="caseChips"></div>
           <p class="examples-link">
             <a
@@ -239,34 +239,34 @@
 
       const EXAMPLE_CASES = [
         {
-          label: "1 · Market stress pause",
+          label: "1 · Vendor batch",
           question:
-            "Should we pause outbound HBAR from this treasury while lending and DEX markets are under stress?",
+            "Our payment agent is about to settle this week's vendor invoices from the treasury — should I approve the batch given current lending pool depth and this account's recent transfers?",
           accountId: "0.0.3",
         },
         {
-          label: "2 · Unusual outflows",
+          label: "2 · Month-end close",
           question:
-            "Is this treasury sending more HBAR than usual while lending pools are shrinking?",
+            "For month-end close, does this treasury account's transfer volume look normal relative to current Compound and Uniswap market size?",
           accountId: "0.0.10449882",
         },
         {
-          label: "3 · Cap agent spend",
+          label: "3 · Idle capital",
           question:
-            "Before the agent pays vendors this week, is DeFi market stress high enough to cap the spend budget?",
-          accountId: "0.0.10456496",
-        },
-        {
-          label: "4 · Board risk memo",
-          question:
-            "Summarize DeFi lending and DEX liquidity versus this account's recent Hedera activity for a risk memo.",
+            "We are holding surplus HBAR in the treasury — are lending pools large enough that deploying idle balance into yield is worth evaluating now?",
           accountId: "0.0.3",
         },
         {
-          label: "5 · TVL divergence",
+          label: "4 · Alert triage",
           question:
-            "Are we still comfortable with treasury outflows when Compound and Uniswap TVL diverge sharply?",
+            "We got an alert on unusual Hedera outflows — does today's DeFi liquidity picture point to external market stress, or should we investigate this treasury account specifically?",
           accountId: "0.0.98",
+        },
+        {
+          label: "5 · Board brief",
+          question:
+            "The board asked how our treasury activity relates to current DeFi market conditions — summarize Graph lending and DEX liquidity versus this account's recent Hedera transfers for a one-page brief.",
+          accountId: "0.0.10456496",
         },
       ];
 

@@ -10,22 +10,22 @@ A **finance operator** authorizes the session with **World Selfie Check** (bots 
 
 Everything runs on **Hedera testnet only** for the hackathon demo. Default price is **1,000 tinybars** (0.00001 HBAR) per beat.
 
-## Example cases (what operators ask)
+## Example cases (real treasury workflows)
 
-Pick any preset on the [live desk](https://nextbeat.vercel.app) or use these in your demo. Full sample beats: [`docs/example-cases.md`](./docs/example-cases.md).
+Pick any preset on the [live desk](https://nextbeat.vercel.app). Full questions + sample answers: [`docs/example-cases.md`](./docs/example-cases.md).
 
-| # | Risk question | Treasury account (testnet) |
-|---|---|---|
-| 1 | Should we **pause outbound HBAR** while lending and DEX markets are under stress? | `0.0.3` |
-| 2 | Is this treasury **sending more than usual** while lending pools are shrinking? | `0.0.10449882` |
-| 3 | Before the agent **pays vendors this week**, is DeFi stress high enough to **cap the spend budget**? | `0.0.10456496` |
-| 4 | **Summarize DeFi liquidity vs this account’s activity** for a board risk memo. | `0.0.3` |
-| 5 | Are we comfortable with **outflows when Compound and Uniswap TVL diverge**? | `0.0.98` |
+| # | Who asks | Goal | Treasury account (testnet) |
+|---|---|---|---|
+| 1 | AP / treasury ops | **Approve** this week's agent vendor batch | `0.0.3` |
+| 2 | Controller | **Month-end close** — reconcile transfers vs market context | `0.0.10449882` |
+| 3 | Treasury manager | **Deploy idle HBAR** — is yield worth evaluating? | `0.0.3` |
+| 4 | Security on-call | **Triage outflow alert** — market stress vs account issue | `0.0.98` |
+| 5 | CFO / board | **Governance brief** — DeFi liquidity vs treasury activity | `0.0.10456496` |
 
 **Sample beat (case 1 — live format; TVL updates each query):**
 
 ```
-Case: “Should we pause outbound HBAR from this treasury while lending and DEX markets are under stress?”
+Case: “Our payment agent is about to settle this week's vendor invoices…”
 
 Market snapshot:
 • compound-v2: TVL ≈ $… (The Graph)
@@ -33,7 +33,7 @@ Market snapshot:
 
 Treasury account 0.0.3 on Hedera testnet: N recent transactions.
 
-Takeaway for the operator: compare overall DeFi market size (Graph) with this account’s recent activity (Hedera)…
+Takeaway for the operator: …
 ```
 
 Each paid beat is **live** — Graph TVL and transaction counts come from Studio + mirror at request time, settled on HashScan testnet.
