@@ -12,33 +12,121 @@ Everything runs on **Hedera testnet only** for the hackathon demo. Default price
 
 ## Example cases (real treasury workflows)
 
-Pick any preset on the [live desk](https://nextbeat.vercel.app). Full questions + **real sample beat outputs**: [`docs/example-cases.md`](./docs/example-cases.md).
+Try any preset on the [live desk](https://nextbeat.vercel.app) — authorize with World, click a case chip, **Buy next beat**.
 
-**Our two testnet accounts:** `0.0.10449882` (service treasury, receives beat payments) · `0.0.10456496` (agent wallet, pays for beats).
+**Our two testnet accounts** (portal.hedera.com — no placeholders):
 
-| # | Who asks | Goal | Account to review |
-|---|---|---|---|
-| 1 | AP / treasury ops | **Approve** this week's agent vendor batch | `0.0.10449882` |
-| 2 | Controller | **Month-end close** — reconcile transfers vs market context | `0.0.10449882` |
-| 3 | Treasury manager | **Deploy idle HBAR** — is yield worth evaluating? | `0.0.10449882` |
-| 4 | Security on-call | **Triage outflow alert** — market stress vs account issue | `0.0.10456496` |
-| 5 | CFO / board | **Governance brief** — DeFi liquidity vs treasury activity | `0.0.10456496` |
+| Account | Role |
+|---|---|
+| `0.0.10449882` | Service treasury — receives x402 beat payments · [HashScan](https://hashscan.io/testnet/account/0.0.10449882) |
+| `0.0.10456496` | Agent wallet — pays for each beat after World authorization · [HashScan](https://hashscan.io/testnet/account/0.0.10456496) |
 
-**Sample beat (case 1 — captured from a live query; buy a beat for fresh TVL/tx counts):**
+Sample beats below are **real outputs** from a live query. TVL and transaction counts **update every time** someone buys a beat (~1000 tinybars; agent pays service on testnet).
+
+### Case 1 — Approve this week's vendor batch
+
+**Who:** AP / treasury ops · **Goal:** sign off on recurring agent payouts  
+**Account:** `0.0.10449882`
+
+**Question:** Our payment agent is about to settle this week's vendor invoices from the treasury — should I approve the batch given current lending pool depth and this account's recent transfers?
+
+**Sample beat:**
 
 ```
-Case: “Our payment agent is about to settle this week's vendor invoices…”
+Case: “Our payment agent is about to settle this week's vendor invoices from the treasury — should I approve the batch given current lending pool depth and this account's recent transfers?”
 
 Market snapshot:
-• Compound v2: TVL ≈ $115841820.11… (The Graph)
-• factory:0x1F98431c8aD98523631AE4a59f267346ea31F984: TVL ≈ $2075145401042.19… (The Graph)
+• Compound v2: TVL ≈ $115841820.1152804509988066577686744 (The Graph)
+• factory:0x1F98431c8aD98523631AE4a59f267346ea31F984: TVL ≈ $2075145401042.190240673477879296609 (The Graph)
 
 Treasury account 0.0.10449882 on Hedera testnet: 2 recent transactions.
 
-Takeaway for the operator: compare overall DeFi market size (Graph) with this account's recent activity (Hedera)…
+Takeaway for the operator: compare overall DeFi market size (Graph) with this account’s recent activity (Hedera). They measure different things — use both before pausing or approving outbound transfers.
 ```
 
-Each paid beat is **live** — Graph TVL and transaction counts update at request time; agent `0.0.10456496` pays service `0.0.10449882` on HashScan testnet.
+### Case 2 — Month-end close reconciliation
+
+**Who:** Controller · **Goal:** reconcile on-chain activity before locking the books  
+**Account:** `0.0.10449882`
+
+**Question:** For month-end close, does this treasury account's transfer volume look normal relative to current Compound and Uniswap market size?
+
+**Sample beat:**
+
+```
+Case: “For month-end close, does this treasury account's transfer volume look normal relative to current Compound and Uniswap market size?”
+
+Market snapshot:
+• Compound v2: TVL ≈ $115841820.1152804509988066577686744 (The Graph)
+• factory:0x1F98431c8aD98523631AE4a59f267346ea31F984: TVL ≈ $2075145401042.190240673477879296609 (The Graph)
+
+Treasury account 0.0.10449882 on Hedera testnet: 2 recent transactions.
+
+Takeaway for the operator: compare overall DeFi market size (Graph) with this account’s recent activity (Hedera). They measure different things — use both before pausing or approving outbound transfers.
+```
+
+### Case 3 — Deploy idle treasury HBAR
+
+**Who:** Treasury manager · **Goal:** decide whether idle HBAR is worth moving into yield  
+**Account:** `0.0.10449882`
+
+**Question:** We are holding surplus HBAR in the treasury — are lending pools large enough that deploying idle balance into yield is worth evaluating now?
+
+**Sample beat:**
+
+```
+Case: “We are holding surplus HBAR in the treasury — are lending pools large enough that deploying idle balance into yield is worth evaluating now?”
+
+Market snapshot:
+• Compound v2: TVL ≈ $115841820.1152804509988066577686744 (The Graph)
+• factory:0x1F98431c8aD98523631AE4a59f267346ea31F984: TVL ≈ $2075145401042.190240673477879296609 (The Graph)
+
+Treasury account 0.0.10449882 on Hedera testnet: 2 recent transactions.
+
+Takeaway for the operator: compare overall DeFi market size (Graph) with this account’s recent activity (Hedera). They measure different things — use both before pausing or approving outbound transfers.
+```
+
+### Case 4 — Triage an outflow alert
+
+**Who:** Security / ops on-call · **Goal:** escalate or dismiss an outflow alert  
+**Account:** `0.0.10456496` (agent wallet — pays for beats)
+
+**Question:** We got an alert on unusual Hedera outflows — does today's DeFi liquidity picture point to external market stress, or should we investigate this treasury account specifically?
+
+**Sample beat:**
+
+```
+Case: “We got an alert on unusual Hedera outflows — does today's DeFi liquidity picture point to external market stress, or should we investigate this treasury account specifically?”
+
+Market snapshot:
+• Compound v2: TVL ≈ $115841820.1152804509988066577686744 (The Graph)
+• factory:0x1F98431c8aD98523631AE4a59f267346ea31F984: TVL ≈ $2075145401042.190240673477879296609 (The Graph)
+
+Treasury account 0.0.10456496 on Hedera testnet: 2 recent transactions.
+
+Takeaway for the operator: compare overall DeFi market size (Graph) with this account’s recent activity (Hedera). They measure different things — use both before pausing or approving outbound transfers.
+```
+
+### Case 5 — Board / governance briefing
+
+**Who:** CFO / board liaison · **Goal:** one-page brief for governance  
+**Account:** `0.0.10456496` (agent wallet — outbound beat payments)
+
+**Question:** The board asked how our treasury activity relates to current DeFi market conditions — summarize Graph lending and DEX liquidity versus this account's recent Hedera transfers for a one-page brief.
+
+**Sample beat:**
+
+```
+Case: “The board asked how our treasury activity relates to current DeFi market conditions — summarize Graph lending and DEX liquidity versus this account's recent Hedera transfers for a one-page brief.”
+
+Market snapshot:
+• Compound v2: TVL ≈ $115841820.1152804509988066577686744 (The Graph)
+• factory:0x1F98431c8aD98523631AE4a59f267346ea31F984: TVL ≈ $2075145401042.190240673477879296609 (The Graph)
+
+Treasury account 0.0.10456496 on Hedera testnet: 2 recent transactions.
+
+Takeaway for the operator: compare overall DeFi market size (Graph) with this account’s recent activity (Hedera). They measure different things — use both before pausing or approving outbound transfers.
+```
 
 ## Live demo
 

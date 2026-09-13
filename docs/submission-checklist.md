@@ -5,7 +5,7 @@
 Prizes: [ethglobal.com/events/ethonline2026/prizes](https://ethglobal.com/events/ethonline2026/prizes)  
 **Form sponsors (exactly 3):** Hedera · The Graph · World · **From Scratch** track  
 **Live demo:** https://nextbeat.vercel.app  
-**Example cases + sample beats:** [`example-cases.md`](./example-cases.md)
+**Example cases + sample beats:** [README — Example cases](../README.md#example-cases-real-treasury-workflows)
 
 ## Sponsor alignment
 
