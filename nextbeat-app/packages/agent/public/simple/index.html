@@ -106,6 +106,36 @@
         color: var(--success);
         border-color: #6ee7b7;
         background: var(--success-bg);
+        font-weight: 600;
+      }
+      .step.done::before {
+        content: "✓ ";
+      }
+      .gate-done {
+        border-color: #6ee7b7;
+        background: var(--success-bg);
+      }
+      .gate-done-row {
+        margin: 0;
+        display: flex;
+        gap: 0.65rem;
+        align-items: flex-start;
+        font-size: 0.92rem;
+        line-height: 1.45;
+        color: var(--text);
+      }
+      .gate-tick {
+        flex: 0 0 auto;
+        width: 1.35rem;
+        height: 1.35rem;
+        border-radius: 999px;
+        background: var(--success);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
       .card {
         background: var(--surface);
@@ -390,6 +420,13 @@
         <p class="status" id="gateStatus"></p>
       </div>
 
+      <div class="card gate-done" id="gateDoneCard" hidden>
+        <p class="gate-done-row">
+          <span class="gate-tick" aria-hidden="true">✓</span>
+          <span><strong>Step 1 complete</strong> — World Selfie authorized. Ask your question below.</span>
+        </p>
+      </div>
+
       <div class="card locked" id="caseCard">
         <h2>Step 2 — Ask your question</h2>
         <p class="card-intro">
@@ -397,9 +434,11 @@
           recent payments on Hedera.
         </p>
         <label for="assignment">Your question</label>
-        <textarea id="assignment">
-Is this Hedera wallet taking on more risk than the rest of the lending and trading markets?</textarea
-        >
+        <textarea
+          id="assignment"
+          rows="4"
+          placeholder="Type your treasury risk question. The answer appears here after you get a report."
+        ></textarea>
         <label for="accountId">Hedera wallet to check</label>
         <input id="accountId" value="0.0.10449882" autocomplete="off" spellcheck="false" />
         <p class="field-hint">
@@ -454,6 +493,14 @@ Is this Hedera wallet taking on more risk than the rest of the lending and tradi
         stepHuman.className = "step" + (humanDone ? " done" : " active");
         stepCase.className = "step" + (caseOpen ? " active" : humanDone ? "" : "");
         stepPay.className = "step";
+      }
+
+      function showHumanAuthorized(demo) {
+        document.getElementById("gateDoneCard").hidden = false;
+        document.getElementById("gateDoneCard").querySelector("span:last-child").innerHTML = demo
+          ? "<strong>Step 1 complete</strong> — local testing bypass. Ask your question below."
+          : "<strong>Step 1 complete</strong> — World Selfie authorized. Ask your question below.";
+        stepHuman.className = "step done";
       }
 
       function unlockCase() {
@@ -518,18 +565,17 @@ Is this Hedera wallet taking on more risk than the rest of the lending and tradi
           setSteps(false, false);
         } else {
           gateCard.hidden = true;
+          if (config.humanVerified) showHumanAuthorized(false);
           unlockCase();
-          if (config.humanVerified) stepHuman.className = "step done";
         }
         if (!config.walletReady) buy.disabled = true;
       }
 
       async function markHumanVerified(demo) {
-        gateStatus.textContent = demo
-          ? "Skipped for local testing—you can continue."
-          : "Thanks—you can ask your question now.";
         gateCard.hidden = true;
+        showHumanAuthorized(demo);
         unlockCase();
+        statusEl.textContent = "";
         await loadConfig();
       }
 
@@ -566,8 +612,14 @@ Is this Hedera wallet taking on more risk than the rest of the lending and tradi
       });
 
       buy.addEventListener("click", async () => {
+        const assignment = document.getElementById("assignment").value.trim();
+        if (!assignment) {
+          statusEl.textContent = "Type your question first.";
+          return;
+        }
         resetReport();
         buy.disabled = true;
+        stepCase.className = "step done";
         stepPay.className = "step active";
         statusEl.textContent = "Working on your report…";
         const res = await fetch("/api/buy", {
@@ -575,7 +627,7 @@ Is this Hedera wallet taking on more risk than the rest of the lending and tradi
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
             accountId: document.getElementById("accountId").value.trim(),
-            assignment: document.getElementById("assignment").value.trim(),
+            assignment,
             limit: 3,
           }),
         });

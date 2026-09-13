@@ -59,7 +59,23 @@
         text-align: center;
       }
       .step.active { color: var(--text); border-color: var(--accent); }
-      .step.done { color: var(--ok); border-color: var(--ok); }
+      .step.done { color: var(--ok); border-color: var(--ok); font-weight: 650; }
+      .step.done::before { content: "✓ "; }
+      .gate-done { border-color: var(--ok); background: rgba(61, 214, 140, 0.06); }
+      .gate-done-row { margin: 0; display: flex; gap: 0.65rem; align-items: flex-start; font-size: 0.88rem; line-height: 1.45; }
+      .gate-tick {
+        flex: 0 0 auto;
+        width: 1.35rem;
+        height: 1.35rem;
+        border-radius: 999px;
+        background: var(--ok);
+        color: #0c1018;
+        font-weight: 700;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
       .card {
         background: var(--card);
         border: 1px solid var(--line);
@@ -245,12 +261,23 @@
         <p class="status" id="gateStatus"></p>
       </div>
 
+      <div class="card gate-done" id="gateDoneCard" hidden>
+        <p class="gate-done-row">
+          <span class="gate-tick" aria-hidden="true">✓</span>
+          <span><strong>Step 1 complete</strong> — World Selfie authorized. Open a treasury case below.</span>
+        </p>
+      </div>
+
       <div class="card locked" id="caseCard">
         <h2>Step 2 — Open treasury case</h2>
         <label for="assignment">Risk question</label>
-        <textarea id="assignment">Our payment agent is about to settle this week's vendor invoices from the treasury — should I approve the batch given current lending pool depth and this account's recent transfers?</textarea>
+        <textarea
+          id="assignment"
+          rows="4"
+          placeholder="Pick a sample case below or type your own treasury risk question…"
+        ></textarea>
         <div class="case-picks">
-          <p class="case-picks-label">Real-world cases — click to load</p>
+          <p class="case-picks-label">Sample cases — click to fill your question (answers appear after you buy a beat)</p>
           <div class="case-chips" id="caseChips"></div>
           <p class="examples-link">
             <a
@@ -267,8 +294,6 @@
           Our two testnet accounts: <code>0.0.10449882</code> (service treasury) or
           <code>0.0.10456496</code> (agent payer). Pick the one your question is about.
         </p>
-        <p class="sample-answer-label" id="sampleAnswerLabel" hidden>Sample beat (live query — buy for fresh data)</p>
-        <div class="sample-answer" id="sampleAnswer" hidden></div>
         <button id="buy" type="button" disabled>Buy next beat (agent pays testnet HBAR)</button>
         <p class="status" id="status"></p>
       </div>
@@ -344,29 +369,18 @@
         },
       ];
 
-      function formatSampleBeat(c) {
-        return (
-          `Case: “${c.question}”\n\n` +
-          "Market snapshot:\n" +
-          "• Compound v2: TVL ≈ $115841820.1152804509988066577686744 (The Graph)\n" +
-          "• factory:0x1F98431c8aD98523631AE4a59f267346ea31F984: TVL ≈ $2075145401042.190240673477879296609 (The Graph)\n\n" +
-          `Treasury account ${c.accountId} on Hedera testnet: ${c.txCount} recent transactions.\n\n` +
-          "Takeaway for the operator: compare overall DeFi market size (Graph) with this account’s recent activity (Hedera). " +
-          "They measure different things — use both before pausing or approving outbound transfers."
-        );
-      }
-
-      function showSampleAnswer(c) {
-        document.getElementById("sampleAnswer").textContent = formatSampleBeat(c);
-        document.getElementById("sampleAnswerLabel").hidden = false;
-        document.getElementById("sampleAnswer").hidden = false;
-      }
-
       function loadExampleCase(c) {
         document.getElementById("assignment").value = c.question;
         document.getElementById("accountId").value = c.accountId;
-        showSampleAnswer(c);
-        statusEl.textContent = "Loaded example case — buy beat for a fresh live answer.";
+        statusEl.textContent = "Case loaded — buy a beat to see the live answer.";
+      }
+
+      function showHumanAuthorized(demo) {
+        document.getElementById("gateDoneCard").hidden = false;
+        document.getElementById("gateDoneCard").querySelector("span:last-child").innerHTML = demo
+          ? "<strong>Step 1 complete</strong> — local testing bypass. Open a treasury case below."
+          : "<strong>Step 1 complete</strong> — World Selfie authorized. Open a treasury case below.";
+        stepHuman.className = "step done";
       }
 
       function renderExampleCases() {
@@ -441,18 +455,17 @@
           setSteps(false, false);
         } else {
           gateCard.hidden = true;
+          if (config.humanVerified) showHumanAuthorized(false);
           unlockCase();
-          if (config.humanVerified) stepHuman.className = "step done";
         }
         if (!config.walletReady) buy.disabled = true;
       }
 
       async function markHumanVerified(demo) {
-        gateStatus.textContent = demo
-          ? "Skipped for local testing — you can open a case."
-          : "Authorized — you can open a treasury case.";
         gateCard.hidden = true;
+        showHumanAuthorized(demo);
         unlockCase();
+        statusEl.textContent = "";
         await loadConfig();
       }
 
@@ -489,8 +502,14 @@
       });
 
       buy.addEventListener("click", async () => {
+        const assignment = document.getElementById("assignment").value.trim();
+        if (!assignment) {
+          statusEl.textContent = "Enter a risk question or pick a sample case first.";
+          return;
+        }
         resetResult();
         buy.disabled = true;
+        stepCase.className = "step done";
         stepPay.className = "step active";
         statusEl.textContent = "Agent buying next risk beat…";
         const res = await fetch("/api/buy", {
@@ -498,7 +517,7 @@
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
             accountId: document.getElementById("accountId").value.trim(),
-            assignment: document.getElementById("assignment").value.trim(),
+            assignment,
             limit: 3,
           }),
         });
@@ -546,7 +565,6 @@
       });
 
       renderExampleCases();
-      showSampleAnswer(EXAMPLE_CASES[0]);
       loadConfig().catch(() => {
         meta.textContent = "Could not load config. Refresh the page.";
       });
