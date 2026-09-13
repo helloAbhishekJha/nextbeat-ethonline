@@ -156,20 +156,29 @@ Paid buys need Hedera testnet keys in the Vercel project env (agent + service ac
 ## How it works
 
 ```mermaid
-flowchart LR
-  A[Desk UI<br/>port 3001] -->|quote / brief| B[NextBeat service<br/>port 4021]
-  B -->|live queries| C[The Graph]
-  B -->|account / mirror| D[Hedera testnet]
-  A -->|pay HBAR via x402| E[Blocky402]
-  E -->|settle| D
-  B -->|optional receipt| F[HCS topic]
+flowchart TB
+  OP[Treasury operator<br/>browser desk] -->|① Selfie Check| WA[World App<br/>phone]
+  WA -->|proof| OP
+  OP -->|verify cookie| AG[Agent desk API]
+  OP -->|② case question + account| DESK[Desk UI]
+  DESK -->|③ buy beat| AG
+  AG -->|POST /v1/brief| SV[NextBeat service]
+  SV -->|GraphQL TVL| GR[The Graph<br/>Compound V2 + Uniswap V2]
+  SV -->|recent transfers| HM[Hedera mirror<br/>testnet]
+  GR --> SV
+  HM --> SV
+  SV -->|market + treasury data| SV
+  SV -->|402 + reasoning beat| AG
+  AG -->|④ x402 payment| B402[Blocky402 facilitator]
+  B402 -->|HBAR settle| HT[Hedera testnet<br/>agent 0.0.10456496 → service 0.0.10449882]
+  AG -->|beat + read aloud| DESK
 ```
 
-1. **Authorize** — treasury operator passes World Selfie Check.  
-2. **Open case** — risk question + Hedera treasury account under review.  
-3. **Quote** (free) — `GET /v1/quote` shows the metered price for this depth.  
-4. **Buy beat** — `POST /v1/brief` returns `402 Payment Required`; the **agent wallet** pays dust HBAR via Blocky402.  
-5. **Read beat** — reasoning text compares Graph market snapshot with treasury activity; verify payment on [HashScan testnet](https://hashscan.io/testnet). Optional: HCS receipt hash.
+1. **World (human gate)** — operator starts Selfie Check in the **browser desk**; verification completes in the **World App on a phone** (deep link / QR). Desk sets a cookie; `/api/buy` stays blocked until then.  
+2. **Open case** — risk question + Hedera account to review (`0.0.10449882` service treasury or `0.0.10456496` agent wallet).  
+3. **Compose beat** — service queries **The Graph** (live TVL) and **Hedera mirror** (recent txs), then `reasonAboutBeats()` fuses them.  
+4. **Hedera x402** — agent wallet pays ~1000 tinybars via **Blocky402**; confirm on [HashScan testnet](https://hashscan.io/testnet).  
+5. **Listen** — beat text is read aloud in the browser (Web Speech API); optional HCS receipt if configured.
 
 | Role | Who |
 |---|---|
