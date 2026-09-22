@@ -5,6 +5,7 @@ dist/
 .DS_Store
 paycall/
 nextbeat/
+the-system/
 paycall/.env
 *.tsbuildinfo
 coverage/
