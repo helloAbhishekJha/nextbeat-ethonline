@@ -8,6 +8,6 @@ coverage/
 .vercel
 .env*
 !.env.example
-.env.local
+!.env.local
 api/index.js
 api/index.cjs
